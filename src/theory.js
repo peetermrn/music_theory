@@ -24,13 +24,6 @@ const pc = (n) => { const { i, a } = split(n); return mod12(NAT[i] + a); };
 const shift = (n, d) => { const { i, a } = split(n); return L[i] + acc(a + d); };
 // Move a note one semitone without piling up double accidentals
 const nudge = (n) => { const a = split(n).a; return shift(n, a > 0 ? -1 : a < 0 ? 1 : pick([-1, 1])); };
-// Semitone neighbours of a scale's notes that sound outside it: no enharmonic
-// respellings of a scale note, and no trick spellings of natural notes
-const outsiders = (sc) => {
-  const pcs = sc.map(pc);
-  return [...new Set(sc.flatMap((n) => [shift(n, -1), shift(n, 1)]))]
-    .filter((n) => Math.abs(split(n).a) < 2 && !pcs.includes(pc(n)) && !["B#", "E#", "Cb", "Fb"].includes(n));
-};
 
 export function scale(root, type) {
   const { i } = split(root), p = pc(root);
@@ -115,11 +108,6 @@ export function makeQuestion(mode, spec) {
     const ans = sc[k];
     const others = shuffle(sc.filter((_, i) => i !== k));
     return { ...build(kind, `What is the ${ord(k + 1)} note of ${key}?`, ans, shuffle([nudge(ans), ...others.slice(0, 3)])), spec: { ...sp, k } };
-  }
-
-  if (kind === "keynotes") {
-    const ans = spec?.ans ?? pick(outsiders(sc)); // same letter as a key note, but a pitch outside the key
-    return { ...build(kind, `Which note does NOT belong to ${key}?`, ans, shuffle(sc).slice(0, 3)), spec: { ...sp, ans } };
   }
 
   if (kind === "scales") {

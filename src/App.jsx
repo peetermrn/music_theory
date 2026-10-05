@@ -2,16 +2,19 @@ import { useState, useRef } from "react";
 import { makeQuestion } from "./theory.js";
 
 const TOTAL = 10;
-const MODES = [
-  ["notes", "Notes", "Which note sits on each degree"],
-  ["scales", "Scales", "Which notes make up a key"],
-  ["chords", "Chords", "Which triad sits on each degree"],
-  ["mixed", "Mixed", "All of the above, shuffled"],
-  ["keynotes", "Key Notes", "Spot the note that isn't in the key"],
-  ["guitar", "Guitar", "Fretboard notes, frets 0–12"],
-  ["bass", "Bass", "Fretboard notes, frets 0–12"],
+const SECTIONS = [
+  ["Keys", [
+    ["notes", "Notes", "Which note sits on each degree"],
+    ["scales", "Scales", "Which notes make up a key"],
+    ["chords", "Chords", "Which triad sits on each degree"],
+    ["mixed", "Mixed", "All of the above, shuffled"],
+  ]],
+  ["Memorize the fretboard", [
+    ["guitar", "Guitar", "Fretboard notes, frets 0–12"],
+    ["bass", "Bass", "Fretboard notes, frets 0–12"],
+  ]],
 ];
-const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", keynotes: "Key Notes", guitar: "Guitar", bass: "Bass" };
+const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", guitar: "Guitar", bass: "Bass" };
 
 function nextQuestion(mode, seen, spec) {
   let q;
@@ -86,13 +89,18 @@ export default function App() {
       <main className="page">
         <h1>Theory<br />drills</h1>
         <p className="sub">{TOTAL} questions. Pick a mode.</p>
-        <div className="modes">
-          {MODES.map(([id, name, desc]) => (
-            <button key={id} className="mode" onClick={() => start(id)}>
-              <strong>{name}</strong><span>{desc}</span>
-            </button>
-          ))}
-        </div>
+        {SECTIONS.map(([title, modes]) => (
+          <section key={title} className="section">
+            <h2 className="heading">{title}</h2>
+            <div className="modes">
+              {modes.map(([id, name, desc]) => (
+                <button key={id} className="mode" onClick={() => start(id)}>
+                  <strong>{name}</strong><span>{desc}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
       </main>
     );
   }

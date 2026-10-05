@@ -18,6 +18,8 @@ button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
 h1 { font: 400 clamp(48px, 16vw, 68px)/0.95 var(--serif); margin: 12vh 0 0; }
 .sub { color: var(--mute); margin: 0 0 8px; font-size: 18px; }
 
+.section { display: flex; flex-direction: column; gap: 12px; }
+.heading { margin: 8px 0 0; color: var(--brass); text-transform: uppercase; letter-spacing: .14em; font-size: 14px; font-weight: 400; }
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .mode {
   background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
