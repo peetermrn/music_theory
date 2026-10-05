@@ -7,6 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      // the piano and guitar recordings are cached with the app, so ear training works offline
+      workbox: { globPatterns: ["**/*.{js,css,html,mp3}"] },
       manifest: {
         name: "Music Theory Quiz",
         short_name: "Theory Quiz",

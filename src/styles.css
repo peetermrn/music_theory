@@ -55,6 +55,9 @@ h1 { font: 400 clamp(48px, 16vw, 68px)/0.95 var(--serif); margin: 12vh 0 0; }
 }
 .speed b { color: var(--mute); font-weight: 400; }
 .speed:active { background: rgba(224,180,88,.12); }
+/* Ear training entry: one full-width card with no speed game */
+.mode.wide { margin-top: 12px; }
+.mode.wide .play { min-height: 0; padding-bottom: 18px; }
 
 .bar { display: flex; justify-content: space-between; align-items: center; color: var(--mute); font-size: 15px; }
 .bulb { font-size: 26px; padding: 6px 10px; }
@@ -83,6 +86,34 @@ h1 { font: 400 clamp(48px, 16vw, 68px)/0.95 var(--serif); margin: 12vh 0 0; }
 .answer.right { border-color: var(--ok); background: rgba(95,197,154,.15); }
 .answer.wrong { border-color: var(--bad); background: rgba(239,125,107,.15); }
 .answer.dim { opacity: .45; }
+
+/* Ear training page and question */
+h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
+.chips.pairs { display: grid; grid-template-columns: 1fr 1fr; }
+.primary:disabled { opacity: .4; }
+.tools { display: flex; }
+.tools .bulb { min-width: 44px; padding: 6px; }
+.prompt.ear { margin: 0; padding: 0; background: none; }
+.sounds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sound { min-height: 44px; border: 2px solid var(--brass); border-radius: 12px; color: var(--brass); font-size: 17px; font-weight: 600; }
+.sound.both { grid-column: 1 / -1; min-height: 48px; }
+.sound:active { background: rgba(224,180,88,.12); }
+/* More than five choices: two columns of compact buttons, read row by row */
+.answers.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.answers.two .answer { min-height: 44px; padding: 8px 12px; font-size: 17px; }
+.answer.ear.dim { opacity: .7; } /* still tappable after answering, to hear the interval */
+.interval {
+  display: grid; grid-template-columns: 104px 22px 1fr; align-items: baseline; gap: 8px;
+  width: 100%; min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--line); text-align: left;
+}
+.interval b { font-weight: 600; }
+.interval i { font-style: normal; color: var(--brass); text-align: right; }
+.interval span { color: var(--mute); font-size: 14px; }
+.interval:active { background: rgba(224,180,88,.12); }
+.sheet .hint { color: var(--mute); font-size: 14px; }
+.sheet .credit { margin-top: 12px; color: var(--mute); font-size: 13px; }
+.sheet p + p { margin-top: 8px; }
+.sheet .how + .how { margin-top: 0; }
 
 .feedback { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
 .feedback p { margin: 0; font-size: 18px; }
