@@ -7,6 +7,7 @@ const SECTIONS = [
     ["notes", "Notes", "Which note sits on each degree"],
     ["scales", "Scales", "Which notes make up a key"],
     ["chords", "Chords", "Which triad sits on each degree"],
+    ["relatives", "Relatives", "Which major and minor keys pair up"],
     ["mixed", "Mixed", "All of the above, shuffled"],
   ]],
   ["Memorize the fretboard", [
@@ -14,7 +15,7 @@ const SECTIONS = [
     ["bass", "Bass", "Fretboard notes, frets 0–12"],
   ]],
 ];
-const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", guitar: "Guitar", bass: "Bass" };
+const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", relatives: "Relatives", guitar: "Guitar", bass: "Bass" };
 const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
 // Speed game tuning. Times are in seconds; `modes` holds per-mode overrides, e.g. { scales: { floor: 4 } }.
@@ -67,6 +68,8 @@ function CheatSheet({ onClose }) {
         <pre>{"1  major\n2  minor\n3  minor\n4  major\n5  major\n6  minor\n7  diminished"}</pre>
         <h3>Minor-key triads</h3>
         <pre>{"1  minor\n2  diminished\n3  major\n4  minor\n5  minor\n6  major\n7  major"}</pre>
+        <h3>Relative keys</h3>
+        <pre>{"relative minor = 6th note of the major scale\nrelative major = 3rd note of the minor scale"}</pre>
         <h3>Scale degrees</h3>
         <pre>{"1 tonic\n2 supertonic\n3 mediant\n4 subdominant\n5 dominant\n6 submediant\n7 leading tone"}</pre>
       </div>

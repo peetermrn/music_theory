@@ -46,6 +46,9 @@ export function triads(root, type) {
   });
 }
 
+// The usual key name for a pitch class (Ab major, but G# minor), taken from KEYS
+const keyName = (p, type) => KEYS.find(([r, t]) => t === type && pc(r) === mod12(p))[0];
+
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
 const ord = (n) => n + ["th", "st", "nd", "rd"][n > 3 ? 0 : n];
@@ -94,7 +97,7 @@ function fretQuestion(kind, spec) {
 // `spec` (returned on every question) lets Review mistakes rebuild the same
 // underlying question with freshly shuffled answer choices.
 export function makeQuestion(mode, spec) {
-  const kind = spec ? spec.kind : mode === "mixed" ? pick(["notes", "scales", "chords"]) : mode;
+  const kind = spec ? spec.kind : mode === "mixed" ? pick(["notes", "scales", "chords", "relatives"]) : mode;
   if (kind === "guitar" || kind === "bass") return fretQuestion(kind, spec);
 
   const keyIdx = spec?.key ?? rnd(KEYS.length);
@@ -102,6 +105,16 @@ export function makeQuestion(mode, spec) {
   const key = `${root} ${type}`;
   const sc = scale(root, type);
   const sp = { kind, key: keyIdx };
+
+  if (kind === "relatives") {
+    // The relative key is read off the scale: 6th note of a major key, 3rd note of a minor key
+    const to = type === "major" ? "minor" : "major";
+    const ans = `${sc[type === "major" ? 5 : 2]} ${to}`;
+    // Parallel key, two other degrees of the same scale, and a semitone neighbour of the answer
+    const semis = type === "major" ? [0, 4, 7, 9 + pick([-1, 1])] : [0, 8, 7, 3 + pick([-1, 1])];
+    const wrong = semis.map((d) => `${keyName(pc(root) + d, to)} ${to}`);
+    return { ...build(kind, `What is the relative ${to} of ${key}?`, ans, shuffle(wrong)), spec: sp };
+  }
 
   if (kind === "notes") {
     const k = spec?.k ?? rnd(7);

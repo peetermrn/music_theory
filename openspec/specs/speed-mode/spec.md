@@ -7,18 +7,22 @@ An endless timed game available for every quiz mode. It trains instant recall by
 ## Requirements
 
 ### Requirement: Starting a speed game
-The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Mixed, Guitar and Bass, a way to start a speed game in that mode with one tap, in addition to starting a normal session.
+The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, a way to start a speed game in that mode with one tap, in addition to starting a normal session.
 
 #### Scenario: Starting from the home screen
 - **WHEN** the user taps the speed entry of the Notes mode on the home screen
 - **THEN** a speed game starts with Notes questions, full hearts, a score of 0 and the starting time limit
+
+#### Scenario: Relatives speed game
+- **WHEN** the user taps the speed entry of the Relatives mode on the home screen
+- **THEN** a speed game starts with Relatives questions
 
 ### Requirement: Same questions as the normal mode
 A speed game SHALL use the same question types, prompts, four answer choices and distractor rules as a normal session of the same mode.
 
 #### Scenario: Mixed speed game
 - **WHEN** a Mixed speed game is played
-- **THEN** every question is a Notes, Scales or Chords question
+- **THEN** every question is a Notes, Scales, Chords or Relatives question
 
 ### Requirement: Countdown per question
 Each speed-game question SHALL have a time limit, and the remaining time SHALL be shown as a visible countdown from the moment the question is displayed. If no answer is selected before the time runs out, the question SHALL count as a wrong answer in every respect: it costs a heart, does not add to the score, and is included in Review mistakes.
