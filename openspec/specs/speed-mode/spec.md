@@ -7,7 +7,7 @@ An endless timed game available for every quiz mode; ear training has none. It t
 ## Requirements
 
 ### Requirement: Starting a speed game
-The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, a way to start a speed game in that mode with one tap, in addition to starting a normal session. Ear training SHALL NOT offer a speed game, neither on the home screen nor on the Ear training page.
+The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, a way to start a speed game in that mode with one tap, in addition to starting a normal session. Ear training SHALL NOT offer a speed game, neither on the home screen nor on any ear-training page.
 
 #### Scenario: Starting from the home screen
 - **WHEN** the user taps the speed entry of the Notes mode on the home screen
@@ -18,8 +18,8 @@ The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Relati
 - **THEN** a speed game starts with Relatives questions
 
 #### Scenario: Ear training has no speed entry
-- **WHEN** the home screen or the Ear training page is shown
-- **THEN** the Ear training entry, the levels and Custom show no speed entry and no best score
+- **WHEN** the home screen or the Interval training page is shown
+- **THEN** the entries under "Ear training", the levels and Custom show no speed entry and no best score
 
 ### Requirement: Same questions as the normal mode
 A speed game SHALL use the same question types, prompts, four answer choices and distractor rules as a normal session of the same mode.

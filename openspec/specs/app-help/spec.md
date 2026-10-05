@@ -36,7 +36,7 @@ The overlay SHALL explain that the "Scales" tick boxes choose which scales are a
 - **THEN** it names Notes, Scales and Mixed as the modes the tick boxes affect, and lists "Major & minor" and "Pentatonic"
 
 ### Requirement: Lists every mode
-The overlay SHALL list every mode offered on the home screen with a one-line description of what it asks, grouped under the same headings as the home screen. It SHALL also list the Ear training entry with a one-line description.
+The overlay SHALL list every mode offered on the home screen with a one-line description of what it asks, grouped under the same headings as the home screen. It SHALL also list every entry under "Ear training", under that heading, each with a one-line description.
 
 #### Scenario: Mode list
 - **WHEN** the overlay is open
@@ -44,7 +44,7 @@ The overlay SHALL list every mode offered on the home screen with a one-line des
 
 #### Scenario: Ear training entry
 - **WHEN** the overlay is open
-- **THEN** "Ear training" is listed after the fretboard modes with a description
+- **THEN** "Interval training" is listed under "Ear training", after the fretboard modes, with a description
 
 ### Requirement: Fits a phone
 The overlay SHALL be readable on a phone-width screen without horizontal scrolling, and all of its content SHALL be reachable.
@@ -67,3 +67,25 @@ The overlay SHALL explain ear training separately from normal sessions: it has i
 #### Scenario: Sounds and credits
 - **WHEN** the overlay is open
 - **THEN** it names the two sounds the sound button switches between, and names the source of the piano recordings and of the guitar recordings
+
+### Requirement: Explains chord training
+The overlay SHALL explain chord training: it has its own page with five levels and a Custom selection; a chord is played one note at a time and then together, and the user picks its type from one choice per type; it can be replayed one by one or together; the choices can be tapped after answering to hear them; and, like interval training, it has no speed game and no Review mistakes.
+
+#### Scenario: Chord training summary
+- **WHEN** the overlay is open
+- **THEN** it states that a chord-training question plays a chord one note at a time and then together, and that the answer is the type of chord
+
+#### Scenario: Listed with the other exercises
+- **WHEN** the overlay is open
+- **THEN** "Chord training" is listed under "Ear training" after "Interval training", with a description
+
+### Requirement: Explains degree training
+The overlay SHALL explain degree training: it has its own page with four levels and a Custom selection; a few chords are played to set a key, then one note, and the user picks which degree of the key that note is; the key changes with every question; the chords and the note can be replayed together or separately; after answering, the key and the note are named and the choices can be tapped to hear them; and, like the other ear-training exercises, it has no speed game and no Review mistakes.
+
+#### Scenario: Degree training summary
+- **WHEN** the overlay is open
+- **THEN** it states that a degree-training question plays chords to set the key and then one note, and that the answer is the note's degree in that key
+
+#### Scenario: Listed with the other exercises
+- **WHEN** the overlay is open
+- **THEN** "Degree training" is listed under "Ear training" after "Chord training", with a description

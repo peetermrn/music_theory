@@ -33,7 +33,7 @@ const split = (n) => ({
   i: L.indexOf(n[0]),
   a: n.length > 1 ? (n[1] === "#" ? 1 : -1) * (n.length - 1) : 0,
 });
-const pc = (n) => { const { i, a } = split(n); return mod12(NAT[i] + a); };
+export const pc = (n) => { const { i, a } = split(n); return mod12(NAT[i] + a); };
 const shift = (n, d) => { const { i, a } = split(n); return L[i] + acc(a + d); };
 // Move a note one semitone without piling up double accidentals
 const nudge = (n) => { const a = split(n).a; return shift(n, a > 0 ? -1 : a < 0 ? 1 : pick([-1, 1])); };

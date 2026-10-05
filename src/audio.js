@@ -2,7 +2,7 @@
 // Every export is safe to call where Web Audio is missing or blocked: the app then stays silent.
 
 // Tuning, in seconds unless noted
-const GAP = 0.6;     // the second note starts this long after the first
+const GAP = 0.6;     // default time from one step to the next
 const RING = 2.2;    // how long the last (or only) note sounds
 const OVERLAP = 0.6; // how long a note keeps sounding after the next one has started
 const RELEASE = 0.4; // fade-out at the end of a note
@@ -76,8 +76,9 @@ export function stop() {
   live = [];
 }
 
-// Play the given MIDI notes one after another in the current voice, cutting off the previous sound
-export async function play(notes) {
+// Play the given steps `gap` seconds apart in the current voice, cutting off the previous sound.
+// A step is one MIDI note, an array of notes that start together, or null for a rest.
+export async function play(steps, gap = GAP) {
   try {
     stop();
     const call = calls;
@@ -86,7 +87,12 @@ export async function play(notes) {
     const buffers = await load(name).catch(() => { delete loads[name]; throw new Error("unavailable"); }); // retried on the next play
     if (call !== calls) return;
     const at = ctx.currentTime + 0.03;
-    notes.forEach((midi, i) => schedule(midi, at + i * GAP, i < notes.length - 1 ? GAP + OVERLAP : RING, buffers, LEVEL[name]));
+    steps.forEach((step, i) => {
+      if (step == null) return;
+      const notes = [].concat(step);
+      const level = LEVEL[name] / Math.sqrt(notes.length); // notes sounding together share the volume of one
+      notes.forEach((midi) => schedule(midi, at + i * gap, i < steps.length - 1 ? gap + OVERLAP : RING, buffers, level));
+    });
   } catch { /* no Web Audio or no recordings: the question stays usable without sound */ }
 }
 

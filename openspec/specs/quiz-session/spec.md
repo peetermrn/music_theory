@@ -7,7 +7,7 @@ The quiz flow shared by every quiz mode (Notes, Scales, Chords, Relatives, Mixed
 ## Requirements
 
 ### Requirement: Mode selection
-The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, and selecting one SHALL start a new session in that mode. The modes SHALL be grouped under two headings, "Keys" (Notes, Scales, Chords, Relatives, Mixed) and "Memorize the fretboard" (Guitar, Bass), and every mode SHALL be directly selectable on the home screen without opening a submenu. Below the modes the home screen SHALL show one "Ear training" entry, which opens the Ear training page instead of starting a session. Ear training is not a quiz mode: its sessions are defined by the ear-training capability, and the other requirements of this capability do not apply to them.
+The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, and selecting one SHALL start a new session in that mode. The modes SHALL be grouped under two headings, "Keys" (Notes, Scales, Chords, Relatives, Mixed) and "Memorize the fretboard" (Guitar, Bass), and every mode SHALL be directly selectable on the home screen without opening a submenu. Below the modes the home screen SHALL show a third heading, "Ear training", in the same style as the other two, for the ear-training exercises. Each entry under it SHALL open that exercise's page instead of starting a session. Ear-training exercises are not quiz modes: their sessions are defined by the ear-training capabilities, and the other requirements of this capability do not apply to them.
 
 #### Scenario: Starting a session
 - **WHEN** the user taps a mode on the home screen
@@ -23,11 +23,11 @@ The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mix
 
 #### Scenario: Ear training entry
 - **WHEN** the home screen is shown
-- **THEN** a single "Ear training" entry appears below the fretboard modes, and no ear-training level is listed on the home screen
+- **THEN** the heading "Ear training" appears below the fretboard modes, looking like the headings "Keys" and "Memorize the fretboard", with the entry "Interval training" under it and no ear-training level listed on the home screen
 
 #### Scenario: Opening ear training
-- **WHEN** the user taps "Ear training" on the home screen
-- **THEN** the Ear training page is shown and no session has started
+- **WHEN** the user taps "Interval training" on the home screen
+- **THEN** the Interval training page is shown and no session has started
 
 ### Requirement: Session length
 A normal session SHALL consist of 10 questions, and the app SHALL avoid repeating the same question prompt within one normal session.

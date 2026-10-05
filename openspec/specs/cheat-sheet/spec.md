@@ -2,12 +2,12 @@
 
 ## Purpose
 
-A reference panel available during a session for learning and review: a static theory reference in the quiz modes, and in ear training a list of intervals that can each be played.
+A reference panel available during a session for learning and review: a static theory reference in the quiz modes, and in ear training a list of the exercise's intervals, chord types or scale degrees that can each be played.
 
 ## Requirements
 
 ### Requirement: Cheat sheet access
-A 💡 button SHALL be visible while a question is shown in a normal session, and tapping it SHALL open the cheat sheet as an overlay that the user can dismiss to return to the same question. The cheat sheet SHALL NOT be available during a speed game. In an ear-training session the 💡 button SHALL open the ear cheat sheet instead of the theory cheat sheet.
+A 💡 button SHALL be visible while a question is shown in a normal session, and tapping it SHALL open the cheat sheet as an overlay that the user can dismiss to return to the same question. The cheat sheet SHALL NOT be available during a speed game. In an ear-training session the 💡 button SHALL open the cheat sheet of the exercise being played instead of the theory cheat sheet: the ear cheat sheet of intervals in interval training, the chord cheat sheet in chord training and the degree cheat sheet in degree training.
 
 #### Scenario: Opening and closing
 - **WHEN** the user taps the 💡 button during a question and then closes the panel
@@ -18,8 +18,16 @@ A 💡 button SHALL be visible while a question is shown in a normal session, an
 - **THEN** no 💡 button is shown
 
 #### Scenario: Ear session
-- **WHEN** the user taps the 💡 button during an ear-training question
-- **THEN** the ear cheat sheet is shown, not the scale and triad reference
+- **WHEN** the user taps the 💡 button during an interval-training question
+- **THEN** the ear cheat sheet of intervals is shown, not the scale and triad reference
+
+#### Scenario: Chord session
+- **WHEN** the user taps the 💡 button during a chord-training question
+- **THEN** the chord cheat sheet is shown, not the list of intervals
+
+#### Scenario: Degree session
+- **WHEN** the user taps the 💡 button during a degree-training question
+- **THEN** the degree cheat sheet is shown, not the list of intervals or chords
 
 ### Requirement: Cheat sheet content
 The cheat sheet SHALL show the whole/half-step patterns for the major (2 2 1 2 2 2 1), natural minor (2 1 2 2 1 2 2) and harmonic minor (2 1 2 2 1 3 1) scales, the diatonic triad qualities for major and minor keys, the scale-degree names, and the rule for relative keys: the relative minor starts on the 6th note of a major scale and the relative major starts on the 3rd note of a minor scale. It SHALL also show the major pentatonic (2 2 3 2 3, the major scale without its 4th and 7th notes) and the minor pentatonic (3 2 2 3 2, the natural minor scale without its 2nd and 6th notes), whichever scale groups are selected.
@@ -57,3 +65,37 @@ The ear cheat sheet SHALL list all twelve intervals from minor 2nd to octave, wh
 #### Scenario: Same sound on every question
 - **WHEN** the user taps "Minor 3rd" in the ear cheat sheet on two different questions
 - **THEN** the same two notes are played both times
+
+### Requirement: Chord cheat sheet content
+The chord cheat sheet SHALL list all nine chord types, whichever level is being played, each with its formula in scale-degree numbers (for example major as 1 3 5 and minor as 1 ♭3 5) and a short description of how it sounds. Tapping a chord type in the list SHALL play it, always from the same fixed root and never from the root of the current question.
+
+#### Scenario: Chord entry
+- **WHEN** the chord cheat sheet is open
+- **THEN** it shows "Dominant 7th" with the formula 1 3 5 ♭7 and a description
+
+#### Scenario: Hearing a chord
+- **WHEN** the user taps "Diminished" in the chord cheat sheet
+- **THEN** a diminished chord is played, and the question underneath remains unanswered
+
+#### Scenario: Same sound on every question
+- **WHEN** the user taps "Minor" in the chord cheat sheet on two different questions
+- **THEN** the same notes are played both times
+
+### Requirement: Degree cheat sheet content
+The degree cheat sheet SHALL list the seven degrees, whichever level is being played, each with its name (tonic, supertonic, mediant, subdominant, dominant, submediant, and leading tone or subtonic) and a short description of how it feels in the key, for major keys in a major-key session and for minor keys in a minor-key session. Tapping a degree SHALL play the progression and then that degree, always in the same fixed key and never in the key of the current question. The sheet SHALL NOT name the key or the note of the current question.
+
+#### Scenario: Degree entry
+- **WHEN** the degree cheat sheet is open
+- **THEN** it shows "5th" with the name "dominant" and a description
+
+#### Scenario: Hearing a degree
+- **WHEN** the user taps "7th" in the degree cheat sheet
+- **THEN** a progression and then the 7th degree are played, and the question underneath remains unanswered
+
+#### Scenario: Same sound on every question
+- **WHEN** the user taps "3rd" in the degree cheat sheet on two different major-key questions
+- **THEN** the same chords and the same note are played both times
+
+#### Scenario: Matches the session's key type
+- **WHEN** the degree cheat sheet is opened in a Level 4 session and the user taps "3rd"
+- **THEN** the progression is in a minor key and the note is 3 semitones above its tonic

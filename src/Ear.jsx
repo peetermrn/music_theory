@@ -1,27 +1,30 @@
 import { useState, useRef, useEffect } from "react";
-import { INTERVALS, INTERVAL_NAME, EAR_LEVELS, EAR_TOTAL, levelAdds, earQuestion } from "./ear.js";
+import { EAR_TOTAL } from "./ear.js";
 import { play, stop, setVoice } from "./audio.js";
 
 const list = (a) => (a.length > 1 ? `${a.slice(0, -1).join(", ")} and ${a[a.length - 1]}` : a[0]);
-const names = (semis) => semis.map((s) => INTERVAL_NAME[s]);
-const SEMIS = Object.fromEntries(INTERVALS.map((i) => [i.name, i.semis]));
 
-// Custom selection, stored as semitone counts joined with "+"
-const CUSTOM_KEY = "theory-quiz.ear-custom";
-const DEFAULT_CUSTOM = [3, 4];
-function readCustom() {
+// A selection is what a session asks: item ids, plus a variant in exercises that have them
+const selection = (s) => (Array.isArray(s) ? { ids: s } : s);
+// Texts that depend on the variant are given as functions of it
+const val = (v, variant) => (typeof v === "function" ? v(variant) : v);
+
+// Custom selection of an exercise, stored as item ids joined with "+", after "<variant>:" if it has variants
+function readCustom(ex) {
   try {
-    const stored = (localStorage.getItem(CUSTOM_KEY) || "").split("+").map(Number);
-    const sel = INTERVALS.map((i) => i.semis).filter((s) => stored.includes(s));
-    if (sel.length >= 2) return sel;
+    const [ids, variant] = (localStorage.getItem(ex.customKey) || "").split(":").reverse();
+    const stored = ids.split("+");
+    const sel = ex.items.map((i) => i.id).filter((id) => stored.includes(String(id)));
+    const known = ex.variants ? ex.variants.some(([id]) => id === variant) : variant === undefined;
+    if (sel.length >= 2 && known) return { ids: sel, variant };
   } catch { /* storage unavailable: use the default */ }
-  return DEFAULT_CUSTOM;
+  return selection(ex.customDefault);
 }
-function writeCustom(semis) {
-  try { localStorage.setItem(CUSTOM_KEY, semis.join("+")); } catch { /* ignore */ }
+function writeCustom(ex, { ids, variant }) {
+  try { localStorage.setItem(ex.customKey, (variant ? `${variant}:` : "") + ids.join("+")); } catch { /* ignore */ }
 }
 
-// The sound button switches between these; the first is the default
+// The sound button switches between these; the first is the default. One choice for every exercise.
 const VOICE_KEY = "theory-quiz.ear-sound";
 const VOICES = [["piano", "🎹", "piano"], ["guitar", "🎸", "acoustic guitar"]];
 function readVoice() {
@@ -35,26 +38,24 @@ function writeVoice(v) {
   try { localStorage.setItem(VOICE_KEY, v); } catch { /* ignore */ }
 }
 
-function nextQuestion(semis, seen) {
+function nextQuestion(ex, { ids, variant }, seen) {
   let q;
-  for (let i = 0; i < 50; i++) { q = earQuestion(semis); if (!seen.has(q.id)) break; }
-  seen.add(q.id);
+  for (let i = 0; i < 50; i++) { q = ex.question(ids, variant); if (!seen.has(q.key)) break; }
+  seen.add(q.key);
   return q;
 }
 
-const MIDDLE_C = 60; // the cheat sheet always plays from here, never from the question's note
-
-function EarSheet({ onClose }) {
+function EarSheet({ ex, variant, onClose }) {
   const close = () => { stop(); onClose(); };
   return (
     <div className="overlay" onClick={close}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <button className="close" onClick={close} aria-label="Close cheat sheet">✕</button>
-        <h2>Intervals</h2>
+        <h2>{val(ex.sheetTitle, variant)}</h2>
         <p className="hint">Tap one to hear it.</p>
-        {INTERVALS.map(({ semis, name, desc }) => (
-          <button key={semis} className="interval" onClick={() => play([MIDDLE_C, MIDDLE_C + semis])}>
-            <b>{name}</b><i>{semis}</i><span>{desc}</span>
+        {ex.items.map(({ id, name, sheet, desc }) => (
+          <button key={id} className={`entry ${ex.id}`} onClick={() => play(ex.demo(id, variant), ex.gap)}>
+            <b>{name}</b><i>{val(sheet, variant)}</i><span>{val(desc, variant)}</span>
           </button>
         ))}
       </div>
@@ -62,8 +63,9 @@ function EarSheet({ onClose }) {
   );
 }
 
-export default function Ear({ onExit }) {
-  const [semis, setSemis] = useState(null); // intervals of the running session; null on the Interval training page
+// One ear-training exercise: its page of levels and Custom, a session, and the results
+export default function Ear({ exercise: ex, onExit }) {
+  const [sel, setSel] = useState(null); // selection of the running session; null on the exercise's page
   const [seen, setSeen] = useState(new Set());
   const [q, setQ] = useState(null);
   const [n, setN] = useState(0);
@@ -72,76 +74,94 @@ export default function Ear({ onExit }) {
   const [done, setDone] = useState(false);
   const [sheet, setSheet] = useState(false);
   const [voice, setVoiceState] = useState(() => { const v = readVoice(); setVoice(v); return v; });
-  const [custom, setCustom] = useState(readCustom);
+  const [custom, setCustom] = useState(() => readCustom(ex));
   const t0 = useRef(0);
 
   const score = results.filter((r) => r.correct).length;
+  const name = (id) => ex.items.find((i) => i.id === id).name;
+  const sound = (steps) => play(steps, ex.gap);
+  const replay = () => sound(ex.controls[0].steps(q));
 
   const begin = (s) => {
     const fresh = new Set();
-    setSeen(fresh); setSemis(s); setResults([]); setN(0); setPicked(null); setDone(false);
-    setQ(nextQuestion(s, fresh));
+    setSeen(fresh); setSel(s); setResults([]); setN(0); setPicked(null); setDone(false);
+    setQ(nextQuestion(ex, s, fresh));
     t0.current = performance.now();
   };
-  const answer = (opt) => {
+  const answer = (id) => {
     const answerTime = (performance.now() - t0.current) / 1000; // includes the automatic playback
-    setPicked(opt);
-    setResults((r) => [...r, { interval: q.answer, selectedAnswer: opt, correct: opt === q.answer, answerTime }]);
+    setPicked(id);
+    setResults((r) => [...r, { item: q.answer, selectedAnswer: id, correct: id === q.answer, answerTime }]);
   };
-  // Before an answer a tap answers; after it a tap plays that choice from the question's starting note
-  const tap = (opt) => (picked === null ? answer(opt) : play([q.notes[0], q.notes[0] + SEMIS[opt]]));
+  // Before an answer a tap answers; after it a tap plays that choice from the question's root
+  const tap = (id) => (picked === null ? answer(id) : sound(ex.preview(q, id)));
   const next = () => {
     stop();
     if (n + 1 >= EAR_TOTAL) return setDone(true);
-    setQ(nextQuestion(semis, seen));
+    setQ(nextQuestion(ex, sel, seen));
     setN(n + 1); setPicked(null);
     t0.current = performance.now();
   };
-  const leave = () => { stop(); setSemis(null); setDone(false); setSheet(false); };
-  const toggle = (s) => {
-    const sel = INTERVALS.map((i) => i.semis).filter((x) => (x === s) !== custom.includes(x));
-    setCustom(sel);
-    if (sel.length >= 2) writeCustom(sel);
+  const leave = () => { stop(); setSel(null); setDone(false); setSheet(false); };
+  const change = (next) => {
+    setCustom(next);
+    if (next.ids.length >= 2) writeCustom(ex, next);
   };
+  const toggle = (id) => change({ ...custom, ids: ex.items.map((i) => i.id).filter((x) => (x === id) !== custom.ids.includes(x)) });
   const cycle = () => {
     const v = VOICES[(VOICES.findIndex(([id]) => id === voice) + 1) % VOICES.length][0];
     setVoiceState(v); setVoice(v); writeVoice(v);
-    play(q.notes);
+    replay();
   };
 
   // Each new question plays by itself; the tap that led to it has unlocked the sound
-  useEffect(() => { if (q) play(q.notes); }, [q]);
+  useEffect(() => { if (q) replay(); }, [q]);
   useEffect(() => stop, []);
 
-  if (!semis) {
+  if (!sel) {
     return (
       <main className="page">
         <header className="bar">
           <button className="ghost small" onClick={onExit}>‹ Back</button>
         </header>
-        <h1 className="title">Interval training</h1>
-        <p className="sub">Two notes are played. Name the interval between them. {EAR_TOTAL} questions per level.</p>
+        <h1 className="title">{ex.title}</h1>
+        <p className="sub">{ex.intro} {EAR_TOTAL} questions per level.</p>
         <div className="modes">
-          {EAR_LEVELS.map((level, i) => (
-            <div key={i} className="mode">
-              <button className="play" onClick={() => begin(level)}>
-                <strong>Level {i + 1}</strong>
-                <span>{i ? `Adds ${list(names(levelAdds(i))).toLowerCase()}` : list(names(level))}</span>
-              </button>
-            </div>
-          ))}
+          {ex.levels.map(selection).map((level, i, levels) => {
+            // a level says what it adds, unless it starts a new variant; then it says what it asks
+            const before = i && levels[i - 1].variant === level.variant ? levels[i - 1].ids : null;
+            const asks = level.ids.length === ex.items.length && ex.all ? ex.all : list(level.ids.map(name));
+            const label = ex.variants ? `${ex.variants.find(([id]) => id === level.variant)[1]}: ` : "";
+            return (
+              <div key={i} className="mode">
+                <button className="play" onClick={() => begin(level)}>
+                  <strong>Level {i + 1}</strong>
+                  <span>{before ? `Adds ${list(level.ids.filter((id) => !before.includes(id)).map(name)).toLowerCase()}` : label + asks}</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
         <section className="section">
           <h2 className="heading">Custom</h2>
+          {ex.variants && (
+            <div className="switch" role="radiogroup">
+              {ex.variants.map(([id, label]) => (
+                <button key={id} className={custom.variant === id ? "on" : ""} role="radio" aria-checked={custom.variant === id} onClick={() => change({ ...custom, variant: id })}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="chips pairs">
-            {INTERVALS.map(({ semis: s, name }) => (
-              <button key={s} className={`chip ${custom.includes(s) ? "on" : ""}`} role="checkbox" aria-checked={custom.includes(s)} onClick={() => toggle(s)}>
-                {name}
+            {ex.items.map(({ id, name: label }) => (
+              <button key={id} className={`chip ${custom.ids.includes(id) ? "on" : ""}`} role="checkbox" aria-checked={custom.ids.includes(id)} onClick={() => toggle(id)}>
+                {label}
               </button>
             ))}
           </div>
-          <button className="primary" disabled={custom.length < 2} onClick={() => begin(custom)}>
-            {custom.length < 2 ? "Tick at least two" : "Start custom"}
+          <button className="primary" disabled={custom.ids.length < 2} onClick={() => begin(custom)}>
+            {custom.ids.length < 2 ? "Tick at least two" : "Start custom"}
           </button>
         </section>
       </main>
@@ -150,7 +170,7 @@ export default function Ear({ onExit }) {
 
   if (done) {
     const avg = results.reduce((s, r) => s + r.answerTime, 0) / (results.length || 1);
-    const tally = INTERVALS.map(({ name }) => [name, results.filter((r) => r.interval === name)]).filter(([, rs]) => rs.length);
+    const tally = ex.items.map((i) => [i.name, results.filter((r) => r.item === i.id)]).filter(([, rs]) => rs.length);
     return (
       <main className="page">
         <p className="label">Session complete</p>
@@ -158,15 +178,17 @@ export default function Ear({ onExit }) {
         <p className="sub">{Math.round((score / (results.length || 1)) * 100)}%</p>
         <p className="sub">Average answer time<br /><b className="avg">{avg.toFixed(1)} seconds</b></p>
         <ul className="tally">
-          {tally.map(([name, rs]) => <li key={name}><span>{name}</span><b>{rs.filter((r) => r.correct).length}/{rs.length}</b></li>)}
+          {tally.map(([label, rs]) => <li key={label}><span>{label}</span><b>{rs.filter((r) => r.correct).length}/{rs.length}</b></li>)}
         </ul>
-        <button className="primary" onClick={() => begin(semis)}>Play again</button>
+        <button className="primary" onClick={() => begin(sel)}>Play again</button>
         <button className="ghost" onClick={leave}>Finish</button>
       </main>
     );
   }
 
   const [, icon, soundName] = VOICES.find(([id]) => id === voice);
+  const options = ex.items.filter((i) => sel.ids.includes(i.id)); // always in the exercise's fixed order
+  const more = ex.explain ? ex.explain(q) : "";
   return (
     <main className="page">
       <header className="bar">
@@ -174,32 +196,32 @@ export default function Ear({ onExit }) {
         <span>{n + 1} / {EAR_TOTAL} · {score} correct</span>
         <span className="tools">
           <button className="bulb" onClick={cycle} aria-label={`Sound: ${soundName}. Tap to change`}>{icon}</button>
-          <button className="bulb" onClick={() => setSheet(true)} aria-label="Open interval cheat sheet">💡</button>
+          <button className="bulb" onClick={() => setSheet(true)} aria-label="Open cheat sheet">💡</button>
         </span>
       </header>
-      <h2 className="prompt ear">{q.prompt}</h2>
+      <h2 className="prompt ear">{val(ex.prompt, sel.variant)}</h2>
       <div className="sounds">
-        <button className="sound both" onClick={() => play(q.notes)}>▶ Play both</button>
-        <button className="sound" onClick={() => play([q.notes[0]])}>1st note</button>
-        <button className="sound" onClick={() => play([q.notes[1]])}>2nd note</button>
+        {ex.controls.map(({ label, wide, steps }) => (
+          <button key={label} className={`sound ${wide ? "both" : ""}`} onClick={() => sound(steps(q))}>{label}</button>
+        ))}
       </div>
-      <div className={`answers ${q.options.length > 5 ? "two" : ""}`}>
-        {q.options.map((o) => {
-          const cls = picked === null ? "" : o === q.answer ? "right" : o === picked ? "wrong" : "dim";
+      <div className={`answers ${options.length > 5 ? "two" : ""}`}>
+        {options.map(({ id, name: label }) => {
+          const cls = picked === null ? "" : id === q.answer ? "right" : id === picked ? "wrong" : "dim";
           return (
-            <button key={o} className={`answer ear ${cls}`} onClick={() => tap(o)}>
-              {o}{picked !== null && o === q.answer ? " ✓" : ""}
+            <button key={id} className={`answer ear ${cls}`} onClick={() => tap(id)}>
+              {label}{picked !== null && id === q.answer ? " ✓" : ""}
             </button>
           );
         })}
       </div>
       {picked !== null && (
         <div className="feedback">
-          <p>{picked === q.answer ? `Correct! ${q.answer}.` : `Not quite. You picked ${picked}, it was ${q.answer}.`}</p>
+          <p>{picked === q.answer ? `Correct! ${more || `${name(q.answer)}.`}` : `Not quite. You picked ${name(picked)}, it was ${name(q.answer)}. ${more}`}</p>
           <button className="primary" onClick={next}>{n + 1 >= EAR_TOTAL ? "Finish" : "Next"}</button>
         </div>
       )}
-      {sheet && <EarSheet onClose={() => setSheet(false)} />}
+      {sheet && <EarSheet ex={ex} variant={sel.variant} onClose={() => setSheet(false)} />}
     </main>
   );
 }

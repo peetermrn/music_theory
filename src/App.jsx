@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
-import { EAR_LEVELS, EAR_TOTAL } from "./ear.js";
+import { EXERCISES, EAR_TOTAL } from "./ear.js";
 import Ear from "./Ear.jsx";
 
 const TOTAL = 10;
@@ -19,9 +19,8 @@ const SECTIONS = [
 ];
 const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", relatives: "Relatives", guitar: "Guitar", bass: "Bass" };
 // Ear-training exercises open their own page; they are not quiz modes and have no speed game
-const EAR = ["Ear training", [
-  ["intervals", "Interval training", "Which interval two notes form"],
-]];
+const EAR = "Ear training";
+const levels = (id) => EXERCISES.find((e) => e.id === id).levels;
 const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
 // Speed game tuning. Times are in seconds; `modes` holds per-mode overrides, e.g. { scales: { floor: 4 } }.
@@ -125,10 +124,12 @@ function HowItWorks({ onClose }) {
             {modes.map(([id, name, desc]) => <p key={id} className="how"><b>{name}</b><span>{desc}</span></p>)}
           </div>
         ))}
-        <h3>{EAR[0]}</h3>
-        {EAR[1].map(([id, name, desc]) => <p key={id} className="how long"><b>{name}</b><span>{desc}</span></p>)}
-        <p>Interval training has its own page with {EAR_LEVELS.length} levels, from {EAR_LEVELS[0].length} intervals up to all {EAR_LEVELS[EAR_LEVELS.length - 1].length}, and Custom, where you tick the intervals to drill. A session is {EAR_TOTAL} questions with no time limit. Each plays two notes, the lower one first, and you pick the interval from one choice per interval.</p>
-        <p>Replay the notes together or one at a time as often as you like. After answering, tap any choice to hear that interval from the same starting note. The sound button switches between piano and acoustic guitar. There is no speed game and no Review mistakes.</p>
+        <h3>{EAR}</h3>
+        {EXERCISES.map(({ id, title, desc }) => <p key={id} className="how long"><b>{title}</b><span>{desc}</span></p>)}
+        <p>An ear-training session is {EAR_TOTAL} questions with no time limit. After answering, tap any choice to hear it and compare. The sound button switches between piano and acoustic guitar. There is no speed game and no Review mistakes.</p>
+        <p>Interval training has its own page with {levels("intervals").length} levels, from {levels("intervals")[0].length} intervals up to all {levels("intervals").at(-1).length}, and Custom, where you tick the intervals to drill. Each question plays two notes, the lower one first, and you pick the interval from one choice per interval. Replay the notes together or one at a time as often as you like.</p>
+        <p>Chord training has its own page with {levels("chords").length} levels, from major and minor up to all {levels("chords").at(-1).length} chord types, and Custom. Each question plays a chord one note at a time and then together, and you pick its type, such as major or minor, from one choice per type. Replay it one by one or together.</p>
+        <p>Degree training has its own page with {levels("degrees").length} levels and Custom. Each question plays a few chords to set a key, then one note, and you pick which degree of that key the note is. The key changes with every question. Replay everything, only the key or only the note. After answering, the key and the note are named.</p>
         <p className="credit">Piano: Salamander Grand Piano by Alexander Holm. Acoustic guitar: tonejs-instruments by Nicholaus Brosowsky, from University of Iowa recordings. Both CC BY 3.0; the guitar notes are shortened.</p>
       </div>
     </div>
@@ -146,7 +147,7 @@ export default function App() {
   const [done, setDone] = useState(false);
   const [cheat, setCheat] = useState(false);
   const [help, setHelp] = useState(false);
-  const [ear, setEar] = useState(false); // the Interval training page and its sessions are shown instead of the home screen
+  const [ear, setEar] = useState(null); // id of the open ear-training exercise, shown instead of the home screen
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -217,7 +218,7 @@ export default function App() {
     return () => clearTimeout(id);
   }, [speed, mode, done, q, picked]);
 
-  if (ear) return <Ear onExit={() => setEar(false)} />;
+  if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
   if (!mode) {
     return (
@@ -255,12 +256,12 @@ export default function App() {
           </section>
         ))}
         <section className="section">
-          <h2 className="heading">{EAR[0]}</h2>
+          <h2 className="heading">{EAR}</h2>
           <div className="modes">
-            {EAR[1].map(([id, name, desc]) => (
+            {EXERCISES.map(({ id, title, desc }) => (
               <div key={id} className="mode">
-                <button className="play" onClick={() => setEar(true)}>
-                  <strong>{name}</strong><span>{desc}</span>
+                <button className="play" onClick={() => setEar(id)}>
+                  <strong>{title}</strong><span>{desc}</span>
                 </button>
               </div>
             ))}

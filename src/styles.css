@@ -98,15 +98,24 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 /* More than five choices: two columns of compact buttons, read row by row */
 .answers.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .answers.two .answer { min-height: 44px; padding: 8px 12px; font-size: 17px; }
-.answer.ear.dim { opacity: .7; } /* still tappable after answering, to hear the interval */
-.interval {
+.answer.ear.dim { opacity: .7; } /* still tappable after answering, to hear that choice */
+/* Cheat-sheet row that plays when tapped: name, a short figure, description */
+.entry {
   display: grid; grid-template-columns: 104px 22px 1fr; align-items: baseline; gap: 8px;
   width: 100%; min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--line); text-align: left;
 }
-.interval b { font-weight: 600; }
-.interval i { font-style: normal; color: var(--brass); text-align: right; }
-.interval span { color: var(--mute); font-size: 14px; }
-.interval:active { background: rgba(224,180,88,.12); }
+.entry b { font-weight: 600; }
+.entry i { font-style: normal; color: var(--brass); text-align: right; }
+.entry span { color: var(--mute); font-size: 14px; }
+.entry:active { background: rgba(224,180,88,.12); }
+/* Chord formulas are too long for the narrow column: formula and description stack beside the name */
+.entry.chords { grid-template-columns: 128px 1fr; row-gap: 2px; }
+.entry.degrees { grid-template-columns: 40px 1fr; row-gap: 2px; }
+.entry.chords i, .entry.chords span, .entry.degrees i, .entry.degrees span { grid-column: 2; text-align: left; }
+/* Two-way choice above the Custom tick boxes, such as major or minor keys */
+.switch { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
+.switch button { min-height: 44px; color: var(--mute); font-size: 16px; }
+.switch button.on { background: var(--panel); color: var(--brass); font-weight: 600; }
 .sheet .hint { color: var(--mute); font-size: 14px; }
 .sheet .credit { margin-top: 12px; color: var(--mute); font-size: 13px; }
 .sheet p + p { margin-top: 8px; }
