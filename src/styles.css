@@ -55,9 +55,6 @@ h1 { font: 400 clamp(48px, 16vw, 68px)/0.95 var(--serif); margin: 12vh 0 0; }
 }
 .speed b { color: var(--mute); font-weight: 400; }
 .speed:active { background: rgba(224,180,88,.12); }
-/* Ear training entry: one full-width card with no speed game */
-.mode.wide { margin-top: 12px; }
-.mode.wide .play { min-height: 0; padding-bottom: 18px; }
 
 .bar { display: flex; justify-content: space-between; align-items: center; color: var(--mute); font-size: 15px; }
 .bulb { font-size: 26px; padding: 6px 10px; }
@@ -137,6 +134,7 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .sheet p { margin: 0; line-height: 1.5; }
 .sheet .how { display: flex; gap: 12px; padding: 3px 0; }
 .sheet .how b { flex: none; width: 84px; font-weight: 600; }
+.sheet .how.long b { width: auto; white-space: nowrap; } /* ear-training entries have longer names */
 .sheet .how span { color: var(--mute); }
 .close { position: absolute; top: 12px; right: 12px; font-size: 20px; padding: 10px; color: var(--mute); }
 

@@ -18,7 +18,10 @@ const SECTIONS = [
   ]],
 ];
 const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", relatives: "Relatives", guitar: "Guitar", bass: "Bass" };
-const EAR = ["Ear training", "Name the interval you hear"]; // opens its own page, not a quiz mode
+// Ear-training exercises open their own page; they are not quiz modes and have no speed game
+const EAR = ["Ear training", [
+  ["intervals", "Interval training", "Which interval two notes form"],
+]];
 const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
 // Speed game tuning. Times are in seconds; `modes` holds per-mode overrides, e.g. { scales: { floor: 4 } }.
@@ -123,7 +126,8 @@ function HowItWorks({ onClose }) {
           </div>
         ))}
         <h3>{EAR[0]}</h3>
-        <p>{EAR[1]}. It has its own page with {EAR_LEVELS.length} levels, from {EAR_LEVELS[0].length} intervals up to all {EAR_LEVELS[EAR_LEVELS.length - 1].length}, and Custom, where you tick the intervals to drill. A session is {EAR_TOTAL} questions with no time limit. Each plays two notes, the lower one first, and you pick the interval from one choice per interval.</p>
+        {EAR[1].map(([id, name, desc]) => <p key={id} className="how long"><b>{name}</b><span>{desc}</span></p>)}
+        <p>Interval training has its own page with {EAR_LEVELS.length} levels, from {EAR_LEVELS[0].length} intervals up to all {EAR_LEVELS[EAR_LEVELS.length - 1].length}, and Custom, where you tick the intervals to drill. A session is {EAR_TOTAL} questions with no time limit. Each plays two notes, the lower one first, and you pick the interval from one choice per interval.</p>
         <p>Replay the notes together or one at a time as often as you like. After answering, tap any choice to hear that interval from the same starting note. The sound button switches between piano and acoustic guitar. There is no speed game and no Review mistakes.</p>
         <p className="credit">Piano: Salamander Grand Piano by Alexander Holm. Acoustic guitar: tonejs-instruments by Nicholaus Brosowsky, from University of Iowa recordings. Both CC BY 3.0; the guitar notes are shortened.</p>
       </div>
@@ -142,7 +146,7 @@ export default function App() {
   const [done, setDone] = useState(false);
   const [cheat, setCheat] = useState(false);
   const [help, setHelp] = useState(false);
-  const [ear, setEar] = useState(false); // the Ear training page and its sessions are shown instead of the home screen
+  const [ear, setEar] = useState(false); // the Interval training page and its sessions are shown instead of the home screen
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -250,11 +254,18 @@ export default function App() {
             </div>
           </section>
         ))}
-        <div className="mode wide">
-          <button className="play" onClick={() => setEar(true)}>
-            <strong>{EAR[0]}</strong><span>{EAR[1]}</span>
-          </button>
-        </div>
+        <section className="section">
+          <h2 className="heading">{EAR[0]}</h2>
+          <div className="modes">
+            {EAR[1].map(([id, name, desc]) => (
+              <div key={id} className="mode">
+                <button className="play" onClick={() => setEar(true)}>
+                  <strong>{name}</strong><span>{desc}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
         {help && <HowItWorks onClose={() => setHelp(false)} />}
       </main>
     );

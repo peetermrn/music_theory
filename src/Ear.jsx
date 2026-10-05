@@ -63,7 +63,7 @@ function EarSheet({ onClose }) {
 }
 
 export default function Ear({ onExit }) {
-  const [semis, setSemis] = useState(null); // intervals of the running session; null on the Ear training page
+  const [semis, setSemis] = useState(null); // intervals of the running session; null on the Interval training page
   const [seen, setSeen] = useState(new Set());
   const [q, setQ] = useState(null);
   const [n, setN] = useState(0);
@@ -119,7 +119,7 @@ export default function Ear({ onExit }) {
         <header className="bar">
           <button className="ghost small" onClick={onExit}>‹ Back</button>
         </header>
-        <h1 className="title">Ear training</h1>
+        <h1 className="title">Interval training</h1>
         <p className="sub">Two notes are played. Name the interval between them. {EAR_TOTAL} questions per level.</p>
         <div className="modes">
           {EAR_LEVELS.map((level, i) => (
