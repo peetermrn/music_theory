@@ -212,7 +212,7 @@ export default function App() {
           <h1>Theory<br />drills</h1>
           <button className="help" onClick={() => setHelp(true)} aria-label="How it works">?</button>
         </div>
-        <p className="sub">{TOTAL} questions. Pick a mode.</p>
+        <p className="sub">Pick a mode for {TOTAL} questions, or ⚡ Speed for an endless game.</p>
         {SECTIONS.map(([title, modes]) => (
           <section key={title} className="section">
             <h2 className="heading">{title}</h2>
