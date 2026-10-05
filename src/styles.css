@@ -20,6 +20,16 @@ h1 { font: 400 clamp(48px, 16vw, 68px)/0.95 var(--serif); margin: 12vh 0 0; }
 
 .section { display: flex; flex-direction: column; gap: 12px; }
 .heading { margin: 8px 0 0; color: var(--brass); text-transform: uppercase; letter-spacing: .14em; font-size: 14px; font-weight: 400; }
+/* Scale group toggles above the Keys modes */
+.chips { display: flex; flex-wrap: wrap; align-items: center; column-gap: 16px; }
+.chips span { color: var(--mute); font-size: 14px; }
+.chip { min-height: 44px; padding: 0; display: flex; align-items: center; gap: 9px; color: var(--mute); font-size: 16px; }
+.chip::before {
+  content: ""; width: 22px; height: 22px; flex: none; border: 2px solid var(--mute); border-radius: 5px;
+  display: grid; place-items: center; font-size: 16px; font-weight: 700; line-height: 1; color: var(--bg);
+}
+.chip.on { color: var(--ink); }
+.chip.on::before { content: "✓"; background: var(--brass); border-color: var(--brass); }
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .modes .mode:last-child:nth-child(odd) { grid-column: 1 / -1; } /* a lone last card fills its row */
 .mode {

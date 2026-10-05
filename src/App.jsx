@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { makeQuestion } from "./theory.js";
+import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
 
 const TOTAL = 10;
 const SECTIONS = [
@@ -33,22 +33,41 @@ const MISS_MS = 600;    // pause on a speed miss (wrong answer or timeout), long
 const RECENT = 10;      // speed games avoid repeating the last RECENT prompts
 const TIMEOUT = Symbol("timeout"); // `picked` value when the countdown ran out
 
-const bestKey = (mode) => `theory-quiz.best.${mode}`;
-function readBest() {
+// Selected scale groups, stored as ids joined with "+" in GROUPS order
+const SCALES_KEY = "theory-quiz.scales";
+const SCALED = ["notes", "scales", "mixed"]; // modes whose questions depend on the selection
+function readGroups() {
+  try {
+    const ids = (localStorage.getItem(SCALES_KEY) || "").split("+");
+    const sel = GROUPS.map((g) => g.id).filter((id) => ids.includes(id));
+    if (sel.length) return sel;
+  } catch { /* storage unavailable: use the default */ }
+  return DEFAULT_GROUPS;
+}
+function writeGroups(groups) {
+  try { localStorage.setItem(SCALES_KEY, groups.join("+")); } catch { /* ignore */ }
+}
+
+// The default selection keeps the plain per-mode key, so scores stored before scale groups existed still count.
+const bestKey = (mode, groups) => {
+  const sel = groups.join("+");
+  return `theory-quiz.best.${mode}${SCALED.includes(mode) && sel !== DEFAULT_GROUPS.join("+") ? `.${sel}` : ""}`;
+};
+function readBest(groups) {
   const best = {};
   try {
-    for (const id of Object.keys(NAME)) best[id] = Number(localStorage.getItem(bestKey(id))) || 0;
+    for (const id of Object.keys(NAME)) best[id] = Number(localStorage.getItem(bestKey(id, groups))) || 0;
   } catch { /* storage unavailable: play without a stored best */ }
   return best;
 }
-function writeBest(mode, value) {
-  try { localStorage.setItem(bestKey(mode), String(value)); } catch { /* ignore */ }
+function writeBest(mode, groups, value) {
+  try { localStorage.setItem(bestKey(mode, groups), String(value)); } catch { /* ignore */ }
 }
 
 // `recent` limits the repeat check to the last RECENT prompts (speed games) instead of the whole session.
-function nextQuestion(mode, seen, spec, recent) {
+function nextQuestion(mode, seen, spec, recent, groups) {
   let q;
-  for (let i = 0; i < 20; i++) { q = makeQuestion(mode, spec); if (spec || !seen.has(q.prompt)) break; }
+  for (let i = 0; i < 20; i++) { q = makeQuestion(mode, spec, groups); if (spec || !seen.has(q.prompt)) break; }
   seen.delete(q.prompt);
   seen.add(q.prompt);
   if (recent && seen.size > RECENT) seen.delete(seen.values().next().value);
@@ -64,6 +83,8 @@ function CheatSheet({ onClose }) {
         <h3>Major scale</h3><pre>2 2 1 2 2 2 1</pre>
         <h3>Natural minor</h3><pre>2 1 2 2 1 2 2</pre>
         <h3>Harmonic minor</h3><pre>2 1 2 2 1 3 1</pre>
+        <h3>Major pentatonic</h3><pre>{"2 2 3 2 3\nmajor scale without its 4th and 7th"}</pre>
+        <h3>Minor pentatonic</h3><pre>{"3 2 2 3 2\nnatural minor without its 2nd and 6th"}</pre>
         <h3>Major-key triads</h3>
         <pre>{"1  major\n2  minor\n3  minor\n4  major\n5  major\n6  minor\n7  diminished"}</pre>
         <h3>Minor-key triads</h3>
@@ -90,7 +111,8 @@ export default function App() {
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
-  const [best, setBest] = useState(readBest);
+  const [groups, setGroups] = useState(readGroups);
+  const [best, setBest] = useState(() => readBest(groups));
   const [record, setRecord] = useState(false);
   const t0 = useRef(0);
 
@@ -102,7 +124,7 @@ export default function App() {
     const cfg = speedCfg(m);
     setSeen(s); setMode(m); setQueue(specs); setResults([]); setN(0); setPicked(null); setDone(false);
     setSpeed(sp); setHearts(cfg.hearts); setLimit(cfg.start); setRecord(false);
-    setQ(nextQuestion(m, s, specs?.[0], sp));
+    setQ(nextQuestion(m, s, specs?.[0], sp, groups));
     t0.current = performance.now();
   };
   const start = (m, sp = false) => begin(m, null, sp);
@@ -125,7 +147,7 @@ export default function App() {
       if (hearts <= 0) {
         // game over: the only place the best score is written
         const isRecord = score > (best[mode] || 0);
-        if (isRecord) { writeBest(mode, score); setBest({ ...best, [mode]: score }); }
+        if (isRecord) { writeBest(mode, groups, score); setBest({ ...best, [mode]: score }); }
         setRecord(isRecord);
         return setDone(true);
       }
@@ -134,11 +156,17 @@ export default function App() {
         ? Math.max(cfg.floor, limit * cfg.factor)
         : Math.min(cfg.start, limit / cfg.factor ** cfg.relief));
     } else if (n + 1 >= total) return setDone(true);
-    setQ(nextQuestion(mode, seen, queue?.[n + 1], speed));
+    setQ(nextQuestion(mode, seen, queue?.[n + 1], speed, groups));
     setN(n + 1); setPicked(null);
     t0.current = performance.now();
   };
   const home = () => { setMode(null); setDone(false); };
+  // Switch a scale group on or off; the last one that is on stays on
+  const toggle = (id) => {
+    const sel = GROUPS.map((g) => g.id).filter((g) => (g === id) !== groups.includes(g));
+    if (!sel.length) return;
+    setGroups(sel); writeGroups(sel); setBest(readBest(sel));
+  };
 
   // Speed game timers: the question deadline while unanswered, the auto-advance once it is
   // answered or timed out. Cleared on quit and unmount.
@@ -158,6 +186,16 @@ export default function App() {
         {SECTIONS.map(([title, modes]) => (
           <section key={title} className="section">
             <h2 className="heading">{title}</h2>
+            {title === "Keys" && (
+              <div className="chips">
+                <span>Scales</span>
+                {GROUPS.map((g) => (
+                  <button key={g.id} className={`chip ${groups.includes(g.id) ? "on" : ""}`} role="checkbox" aria-checked={groups.includes(g.id)} onClick={() => toggle(g.id)}>
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="modes">
               {modes.map(([id, name, desc]) => (
                 <div key={id} className="mode">

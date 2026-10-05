@@ -99,7 +99,7 @@ The score of a speed game SHALL be the number of correct answers. The game-over 
 - **THEN** a normal session of the missed questions starts with no countdown and no hearts
 
 ### Requirement: Best score
-The app SHALL store the best speed-game score for each mode on the device and keep it between visits. A finished game with a higher score SHALL replace the stored best and be marked as a new best on the game-over screen. The best score for each mode SHALL be shown on the home screen once one exists. If the score cannot be stored, the game SHALL still be playable.
+The app SHALL store the best speed-game score for each mode on the device and keep it between visits. For Notes, Scales and Mixed the best score SHALL be kept separately for each selection of scale groups, and scores stored before scale groups existed SHALL count for the default selection. A finished game with a higher score SHALL replace the stored best and be marked as a new best on the game-over screen. The best score for each mode, for the current selection, SHALL be shown on the home screen once one exists. If the score cannot be stored, the game SHALL still be playable.
 
 #### Scenario: New best
 - **WHEN** a Notes speed game ends with a score of 23 and the stored best for Notes is 19
@@ -112,6 +112,18 @@ The app SHALL store the best speed-game score for each mode on the device and ke
 #### Scenario: Quitting does not record a score
 - **WHEN** the user quits a speed game before losing all hearts
 - **THEN** the stored best score is unchanged
+
+#### Scenario: Separate best per selection
+- **WHEN** the Notes best is 23 with only "Major & minor" on and the user switches to only "Pentatonic"
+- **THEN** the home screen shows no Notes best until a Notes speed game is finished with that selection
+
+#### Scenario: Switching back
+- **WHEN** the user switches back to only "Major & minor"
+- **THEN** the home screen shows a Notes best of 23 again
+
+#### Scenario: Modes without scale groups
+- **WHEN** the user changes the scale selection
+- **THEN** the best scores shown for Chords, Relatives, Guitar and Bass do not change
 
 ### Requirement: Tuning values
 A speed game SHALL use these values: 5 hearts; a starting time limit of 20 seconds; each correct answer multiplies the time limit by 0.9; a minimum time limit of 2 seconds; each miss divides the time limit by 0.9 twice. The same values SHALL apply to every mode. A correct answer is shown for about 0.3 seconds and a miss for about 0.6 seconds before the next question.

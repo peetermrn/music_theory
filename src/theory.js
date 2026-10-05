@@ -15,6 +15,19 @@ export const KEYS = [
   ...["A", "E", "B", "F#", "C#", "G#", "Eb", "Bb", "F", "C", "G", "D"].map((r) => [r, "minor"]),
 ];
 
+// A pentatonic is a set of positions in a seven-note parent scale, so it is spelled like its parent
+const SUBSETS = {
+  "major pentatonic": ["major", [0, 1, 2, 4, 5]],
+  "minor pentatonic": ["minor", [0, 2, 3, 4, 6]],
+};
+
+// Scale groups the user can switch on for Notes and Scales questions
+export const GROUPS = [
+  { id: "major-minor", label: "Major & minor", scales: ["major", "minor"] },
+  { id: "pentatonic", label: "Pentatonic", scales: ["major pentatonic", "minor pentatonic"] },
+];
+export const DEFAULT_GROUPS = ["major-minor"];
+
 const acc = (n) => (n > 0 ? "#" : "b").repeat(Math.abs(n));
 const split = (n) => ({
   i: L.indexOf(n[0]),
@@ -34,6 +47,18 @@ export function scale(root, type) {
     return L[j] + acc(d);
   });
 }
+
+// Notes of any scale, plus the parent-scale notes a pentatonic leaves out
+function spell(root, type) {
+  const sub = SUBSETS[type];
+  if (!sub) return { notes: scale(root, type), left: [], pos: null };
+  const parent = scale(root, sub[0]);
+  return { notes: sub[1].map((i) => parent[i]), left: parent.filter((_, i) => !sub[1].includes(i)), pos: sub[1], parent };
+}
+
+// Every root-and-scale pair of the selected groups; a scale is asked on the roots of its parent type
+const pairs = (groups) => GROUPS.filter((g) => groups.includes(g.id)).flatMap((g) => g.scales)
+  .flatMap((type) => KEYS.filter(([, t]) => t === (SUBSETS[type]?.[0] ?? type)).map(([r]) => [r, type]));
 
 // Triad quality is calculated from the scale's own intervals
 export function triads(root, type) {
@@ -96,15 +121,15 @@ function fretQuestion(kind, spec) {
 
 // `spec` (returned on every question) lets Review mistakes rebuild the same
 // underlying question with freshly shuffled answer choices.
-export function makeQuestion(mode, spec) {
+// `groups` are the selected scale group ids; Chords and Relatives always use major and minor keys.
+export function makeQuestion(mode, spec, groups = DEFAULT_GROUPS) {
   const kind = spec ? spec.kind : mode === "mixed" ? pick(["notes", "scales", "chords", "relatives"]) : mode;
   if (kind === "guitar" || kind === "bass") return fretQuestion(kind, spec);
 
-  const keyIdx = spec?.key ?? rnd(KEYS.length);
-  const [root, type] = KEYS[keyIdx];
+  const [root, type] = spec ? [spec.root, spec.type] : pick(kind === "notes" || kind === "scales" ? pairs(groups) : KEYS);
   const key = `${root} ${type}`;
-  const sc = scale(root, type);
-  const sp = { kind, key: keyIdx };
+  const { notes: sc, left, pos, parent } = spell(root, type);
+  const sp = { kind, root, type };
 
   if (kind === "relatives") {
     // The relative key is read off the scale: 6th note of a major key, 3rd note of a minor key
@@ -117,20 +142,29 @@ export function makeQuestion(mode, spec) {
   }
 
   if (kind === "notes") {
-    const k = spec?.k ?? rnd(7);
+    const k = spec?.k ?? rnd(sc.length);
     const ans = sc[k];
     const others = shuffle(sc.filter((_, i) => i !== k));
-    return { ...build(kind, `What is the ${ord(k + 1)} note of ${key}?`, ans, shuffle([nudge(ans), ...others.slice(0, 3)])), spec: { ...sp, k } };
+    // A pentatonic also offers one of the parent-scale notes it leaves out
+    const wrong = pos ? [nudge(ans), pick(left), ...others.slice(0, 2)] : [nudge(ans), ...others.slice(0, 3)];
+    return { ...build(kind, `What is the ${ord(k + 1)} note of ${key}?`, ans, shuffle(wrong)), spec: { ...sp, k } };
   }
 
   if (kind === "scales") {
     const ans = sc.join(" ");
-    const bad = () => {
+    const rest = sc.map((_, i) => i).slice(1); // the root is never altered
+    const nudged = (n) => {
       const s = [...sc];
-      for (const k of shuffle([1, 2, 3, 4, 5, 6]).slice(0, Math.random() < 0.4 ? 2 : 1)) s[k] = nudge(s[k]);
+      for (const k of shuffle(rest).slice(0, n)) s[k] = nudge(s[k]);
       return s.join(" ");
     };
-    const ds = new Set();
+    // Pentatonic: swap one note for a left-out parent note, keeping the notes in ascending order
+    const swapped = () => {
+      const out = pick(pos.slice(1)), into = pick(parent.map((_, i) => i).filter((i) => !pos.includes(i)));
+      return pos.map((i) => (i === out ? into : i)).sort((a, b) => a - b).map((i) => parent[i]).join(" ");
+    };
+    const bad = () => (pos ? (Math.random() < 0.5 ? swapped() : nudged(1)) : nudged(Math.random() < 0.4 ? 2 : 1));
+    const ds = new Set(pos ? [swapped()] : []);
     while (ds.size < 3) { const b = bad(); if (b !== ans) ds.add(b); }
     return { ...build(kind, `Which set of notes is the ${key} scale?`, ans, [...ds]), spec: sp };
   }
