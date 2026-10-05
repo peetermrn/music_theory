@@ -98,6 +98,32 @@ function CheatSheet({ onClose }) {
   );
 }
 
+const list = (a) => (a.length > 1 ? `${a.slice(0, -1).join(", ")} and ${a[a.length - 1]}` : a[0]);
+
+// Numbers, mode names and scale names are read from the constants the app runs on
+function HowItWorks({ onClose }) {
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <button className="close" onClick={onClose} aria-label="Close how it works">✕</button>
+        <h2>How it works</h2>
+        <h3>Sessions</h3>
+        <p>Tap a mode to answer {TOTAL} questions, each with four choices and no time limit. The 💡 button opens a cheat sheet, and at the end you can review the questions you missed.</p>
+        <h3>⚡ Speed</h3>
+        <p>An endless game. You start with {SPEED.hearts} hearts and lose one for a wrong answer or when time runs out. The time limit starts at {SPEED.start} seconds and gets shorter with every correct answer. Your best score is saved on this device.</p>
+        <h3>Scales tick boxes</h3>
+        <p>Choose which scales {list(SCALED.map((id) => NAME[id]))} ask about: {GROUPS.map((g) => g.label).join(", ")}. The other modes are not affected.</p>
+        {SECTIONS.map(([title, modes]) => (
+          <div key={title}>
+            <h3>{title}</h3>
+            {modes.map(([id, name, desc]) => <p key={id} className="how"><b>{name}</b><span>{desc}</span></p>)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [mode, setMode] = useState(null);
   const [queue, setQueue] = useState(null); // specs of missed questions during a review
@@ -108,6 +134,7 @@ export default function App() {
   const [results, setResults] = useState([]);
   const [done, setDone] = useState(false);
   const [cheat, setCheat] = useState(false);
+  const [help, setHelp] = useState(false);
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -181,7 +208,10 @@ export default function App() {
   if (!mode) {
     return (
       <main className="page">
-        <h1>Theory<br />drills</h1>
+        <div className="top">
+          <h1>Theory<br />drills</h1>
+          <button className="help" onClick={() => setHelp(true)} aria-label="How it works">?</button>
+        </div>
         <p className="sub">{TOTAL} questions. Pick a mode.</p>
         {SECTIONS.map(([title, modes]) => (
           <section key={title} className="section">
@@ -210,6 +240,7 @@ export default function App() {
             </div>
           </section>
         ))}
+        {help && <HowItWorks onClose={() => setHelp(false)} />}
       </main>
     );
   }
