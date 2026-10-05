@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { makeQuestion } from "./theory.js";
 
 const TOTAL = 10;
@@ -15,11 +15,42 @@ const SECTIONS = [
   ]],
 ];
 const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", guitar: "Guitar", bass: "Bass" };
+const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
-function nextQuestion(mode, seen, spec) {
+// Speed game tuning. Times are in seconds; `modes` holds per-mode overrides, e.g. { scales: { floor: 4 } }.
+const SPEED = {
+  hearts: 5,
+  start: 20,   // time limit of the first question
+  factor: 0.9, // a correct answer multiplies the limit by this...
+  floor: 2,    // ...down to this minimum
+  relief: 2,   // a miss undoes this many correct-answer steps, up to `start`
+  modes: {},
+};
+const speedCfg = (mode) => ({ ...SPEED, ...SPEED.modes[mode] });
+const ADVANCE_MS = 300; // pause on a correct speed answer before the next question
+const MISS_MS = 600;    // pause on a speed miss (wrong answer or timeout), long enough to see the right one
+const RECENT = 10;      // speed games avoid repeating the last RECENT prompts
+const TIMEOUT = Symbol("timeout"); // `picked` value when the countdown ran out
+
+const bestKey = (mode) => `theory-quiz.best.${mode}`;
+function readBest() {
+  const best = {};
+  try {
+    for (const id of Object.keys(NAME)) best[id] = Number(localStorage.getItem(bestKey(id))) || 0;
+  } catch { /* storage unavailable: play without a stored best */ }
+  return best;
+}
+function writeBest(mode, value) {
+  try { localStorage.setItem(bestKey(mode), String(value)); } catch { /* ignore */ }
+}
+
+// `recent` limits the repeat check to the last RECENT prompts (speed games) instead of the whole session.
+function nextQuestion(mode, seen, spec, recent) {
   let q;
   for (let i = 0; i < 20; i++) { q = makeQuestion(mode, spec); if (spec || !seen.has(q.prompt)) break; }
+  seen.delete(q.prompt);
   seen.add(q.prompt);
+  if (recent && seen.size > RECENT) seen.delete(seen.values().next().value);
   return q;
 }
 
@@ -53,36 +84,68 @@ export default function App() {
   const [results, setResults] = useState([]);
   const [done, setDone] = useState(false);
   const [cheat, setCheat] = useState(false);
+  const [speed, setSpeed] = useState(false);
+  const [hearts, setHearts] = useState(0);
+  const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
+  const [best, setBest] = useState(readBest);
+  const [record, setRecord] = useState(false);
   const t0 = useRef(0);
 
   const total = queue ? queue.length : TOTAL;
   const score = results.filter((r) => r.correct).length;
 
-  const begin = (m, specs) => {
+  const begin = (m, specs, sp) => {
     const s = new Set();
+    const cfg = speedCfg(m);
     setSeen(s); setMode(m); setQueue(specs); setResults([]); setN(0); setPicked(null); setDone(false);
-    setQ(nextQuestion(m, s, specs?.[0]));
+    setSpeed(sp); setHearts(cfg.hearts); setLimit(cfg.start); setRecord(false);
+    setQ(nextQuestion(m, s, specs?.[0], sp));
     t0.current = performance.now();
   };
-  const start = (m) => begin(m, null);
-  const review = () => begin(mode, results.filter((r) => !r.correct).map((r) => r.spec));
+  const start = (m, sp = false) => begin(m, null, sp);
+  const review = () => begin(mode, results.filter((r) => !r.correct).map((r) => r.spec), false);
 
+  // `opt` is TIMEOUT when the speed countdown ran out: a wrong answer with no selected answer
   const answer = (opt) => {
     if (picked !== null) return;
     const answerTime = (performance.now() - t0.current) / 1000; // stops the moment an answer is tapped
+    const correct = opt === q.answer;
     setPicked(opt);
+    if (speed && !correct) setHearts((h) => h - 1);
     setResults((r) => [...r, {
       questionType: q.kind, question: q.prompt, correctAnswer: q.answer,
-      selectedAnswer: opt, correct: opt === q.answer, answerTime, spec: q.spec,
+      selectedAnswer: opt === TIMEOUT ? null : opt, correct, answerTime, spec: q.spec,
     }]);
   };
   const next = () => {
-    if (n + 1 >= total) return setDone(true);
-    setQ(nextQuestion(mode, seen, queue?.[n + 1]));
+    if (speed) {
+      if (hearts <= 0) {
+        // game over: the only place the best score is written
+        const isRecord = score > (best[mode] || 0);
+        if (isRecord) { writeBest(mode, score); setBest({ ...best, [mode]: score }); }
+        setRecord(isRecord);
+        return setDone(true);
+      }
+      const cfg = speedCfg(mode);
+      setLimit(picked === q.answer
+        ? Math.max(cfg.floor, limit * cfg.factor)
+        : Math.min(cfg.start, limit / cfg.factor ** cfg.relief));
+    } else if (n + 1 >= total) return setDone(true);
+    setQ(nextQuestion(mode, seen, queue?.[n + 1], speed));
     setN(n + 1); setPicked(null);
     t0.current = performance.now();
   };
   const home = () => { setMode(null); setDone(false); };
+
+  // Speed game timers: the question deadline while unanswered, the auto-advance once it is
+  // answered or timed out. Cleared on quit and unmount.
+  useEffect(() => {
+    if (!speed || !mode || done) return;
+    const id = picked === null
+      ? setTimeout(() => answer(TIMEOUT), limit * 1000)
+      : setTimeout(next, picked === q.answer ? ADVANCE_MS : MISS_MS);
+    return () => clearTimeout(id);
+  }, [speed, mode, done, q, picked]);
 
   if (!mode) {
     return (
@@ -94,13 +157,36 @@ export default function App() {
             <h2 className="heading">{title}</h2>
             <div className="modes">
               {modes.map(([id, name, desc]) => (
-                <button key={id} className="mode" onClick={() => start(id)}>
-                  <strong>{name}</strong><span>{desc}</span>
-                </button>
+                <div key={id} className="mode">
+                  <button className="play" onClick={() => start(id)}>
+                    <strong>{name}</strong><span>{desc}</span>
+                  </button>
+                  <button className="speed" onClick={() => start(id, true)} aria-label={`${name} speed game`}>
+                    <span>⚡ Speed</span>{best[id] > 0 && <b>Best {best[id]}</b>}
+                  </button>
+                </div>
               ))}
             </div>
           </section>
         ))}
+      </main>
+    );
+  }
+
+  if (done && speed) {
+    const wrong = results.length - score;
+    return (
+      <main className="page">
+        <p className="label">Game over</p>
+        <h1 className="score">{score}</h1>
+        <p className="sub">correct in {NAME[mode]} speed</p>
+        <p className="sub">
+          Best {NAME[mode]} score<br /><b className="avg">{best[mode] || 0}</b>
+          {record && <span className="record">New best</span>}
+        </p>
+        <button className="primary" onClick={() => start(mode, true)}>Play again</button>
+        {wrong > 0 && <button className="secondary" onClick={review}>Review mistakes</button>}
+        <button className="ghost" onClick={home}>Finish</button>
       </main>
     );
   }
@@ -130,9 +216,25 @@ export default function App() {
     <main className="page">
       <header className="bar">
         <button className="ghost small" onClick={home}>Quit</button>
-        <span>{queue ? "Review · " : ""}{n + 1} / {total} · {score} correct</span>
-        <button className="bulb" onClick={() => setCheat(true)} aria-label="Open cheat sheet">💡</button>
+        {speed ? (
+          <>
+            <span className="hearts" aria-label={`${hearts} hearts left`}>
+              {"♥".repeat(hearts)}<i>{"♥".repeat(speedCfg(mode).hearts - hearts)}</i>
+            </span>
+            <span className="points">{score}</span>
+          </>
+        ) : (
+          <>
+            <span>{queue ? "Review · " : ""}{n + 1} / {total} · {score} correct</span>
+            <button className="bulb" onClick={() => setCheat(true)} aria-label="Open cheat sheet">💡</button>
+          </>
+        )}
       </header>
+      {speed && (
+        <div className="countdown" key={n}>
+          <i style={{ animationDuration: `${limit}s`, animationPlayState: picked === null ? "running" : "paused" }} />
+        </div>
+      )}
       <h2 className="prompt">{q.prompt}</h2>
       <div className="answers">
         {q.options.map((o) => {
@@ -144,7 +246,7 @@ export default function App() {
           );
         })}
       </div>
-      {picked !== null && (
+      {picked !== null && !speed && (
         <div className="feedback">
           <p>{picked === q.answer ? "Correct!" : `Not quite. Answer: ${q.answer}`}</p>
           <button className="primary" onClick={next}>{n + 1 >= total ? "Finish" : "Next"}</button>

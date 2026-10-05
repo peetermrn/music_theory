@@ -30,8 +30,8 @@ The card stays one tap for a normal session, and a strip at the bottom of the ca
 **4. Countdown driven by a deadline, drawn as a shrinking bar.**
 When a question is shown, a deadline timestamp is stored and a timeout is scheduled for it; the bar is a CSS animation whose duration is the current limit, restarted per question. The timeout is cleared on answer, on quit and on unmount. Alternative considered: a state update every animation frame to show digits; rejected as needless re-rendering, and a bar is easier to read at a glance than digits.
 
-**5. A miss pauses, a hit does not.**
-After a correct answer the next question appears after about 300 ms. After a miss the countdown stops and the existing feedback view with its Next button is reused. This keeps the learning moment and gives a natural breath, and means the app can never drain several hearts while unattended.
+**5. Nothing pauses.**
+After a correct answer the next question appears after about 300 ms. After a miss the correct button shows green (and the tapped one red, for a wrong answer) for about 600 ms, then the game continues by itself, so the pace is never broken; missed questions are still available in Review mistakes. Originally a miss paused on the feedback view with a Next button; changed during implementation at the user's request to keep the speed going. The cost is that an unattended game runs to game over, accepted below.
 
 **6. Best score in `localStorage`, one key per mode.**
 Keys follow `theory-quiz.best.<mode>`. Reads and writes are wrapped so a storage failure leaves the game playable with no best shown. The score is written only at game over. Alternative considered: one JSON blob; rejected because separate keys need no parsing or migration.
@@ -41,7 +41,7 @@ The speed game remembers the last 10 prompts. Scales has only 24 distinct prompt
 
 ## Risks / Trade-offs
 
-- [App is backgrounded mid-question] -> the deadline passes, which counts as one timeout; because a miss pauses the game, only one heart is lost. Accepted instead of adding pause logic.
+- [App is backgrounded or put down mid-game] -> questions keep timing out until the hearts are gone and the game ends with the score reached so far, which is still a score the player earned. Accepted to keep the pace unbroken and avoid pause logic.
 - [Scales and Chords prompts are slow to read, so one shared minimum may be unfair] -> per-mode overrides in decision 2.
 - [Random guessing at high speed] -> a guess is wrong three times out of four and costs a heart, so it does not pay.
 - [Home screen gets busier] -> the strip is small and secondary; check at phone width that six cards still fit comfortably.

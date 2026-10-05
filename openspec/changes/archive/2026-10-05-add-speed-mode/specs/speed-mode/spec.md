@@ -54,19 +54,27 @@ A speed game SHALL start with a fixed number of hearts, shown during play. Each 
 - **THEN** 2 hearts are shown
 
 #### Scenario: Last heart
-- **WHEN** the user misses a question with 1 heart left and continues
-- **THEN** the game-over screen is shown
+- **WHEN** the user misses a question with 1 heart left
+- **THEN** the game-over screen is shown after a short moment
 
 ### Requirement: Speed-game feedback
-After a correct answer the app SHALL briefly mark it as correct and then show the next question without any further tap. After a miss the app SHALL stop the countdown, mark the correct answer, lock the choices and wait for the user to continue.
+After every question the app SHALL lock the choices, stop the countdown, briefly mark the result and then continue without any tap. A correct answer is marked as correct; a wrong answer is marked as wrong with the correct answer marked alongside it; after a timeout the correct answer is marked. A speed game SHALL NOT wait for the user between questions.
 
 #### Scenario: Correct answer advances by itself
 - **WHEN** the user selects the correct answer
 - **THEN** the next question appears after a short moment with no tap
 
-#### Scenario: Miss waits for the user
-- **WHEN** the user selects a wrong answer and then waits 20 seconds
-- **THEN** the correct answer stays shown, no further heart is lost, and the next question appears only when the user continues
+#### Scenario: Wrong answer advances by itself
+- **WHEN** the user selects a wrong answer with hearts to spare
+- **THEN** the selected choice is briefly marked wrong, the correct choice is marked, and the next question appears after a short moment with no tap
+
+#### Scenario: Timeout advances by itself
+- **WHEN** the countdown runs out with hearts to spare
+- **THEN** the correct choice is briefly marked and the next question appears after a short moment with no tap
+
+#### Scenario: Unattended game
+- **WHEN** a speed game is left untouched
+- **THEN** each question times out in turn until no hearts remain and the game-over screen is shown
 
 ### Requirement: Endless play without recent repeats
 A speed game SHALL have no fixed number of questions. It SHALL NOT repeat a question prompt that was asked among the most recent questions of the same game.
@@ -102,7 +110,7 @@ The app SHALL store the best speed-game score for each mode on the device and ke
 - **THEN** the stored best score is unchanged
 
 ### Requirement: Tuning values
-A speed game SHALL use these values: 5 hearts; a starting time limit of 20 seconds; each correct answer multiplies the time limit by 0.9; a minimum time limit of 2 seconds; each miss divides the time limit by 0.9 twice.
+A speed game SHALL use these values: 5 hearts; a starting time limit of 20 seconds; each correct answer multiplies the time limit by 0.9; a minimum time limit of 2 seconds; each miss divides the time limit by 0.9 twice. The same values SHALL apply to every mode. A correct answer is shown for about 0.3 seconds and a miss for about 0.6 seconds before the next question.
 
 #### Scenario: First correct answer
 - **WHEN** the user answers the first question of a speed game correctly

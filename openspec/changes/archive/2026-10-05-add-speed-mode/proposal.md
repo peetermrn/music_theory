@@ -9,7 +9,7 @@ In a normal session there is no time pressure, so the natural way to answer is t
 - Every mode (Notes, Scales, Chords, Mixed, Guitar, Bass) keeps its normal 10-question session and gains a speed game, started from the home screen in one tap.
 - A speed game is endless: each question has a visible countdown, a correct answer shortens the time limit down to a minimum, and a wrong answer or a timeout costs a heart. The game ends when the hearts run out.
 - The score is the number of correct answers. The best score per mode is stored on the device and shown on the home screen and on the game-over screen.
-- Correct answers advance automatically; a miss pauses the game and shows the correct answer until the user continues.
+- The game never pauses: after every answer or timeout the result is shown briefly (a wrong answer in red, the correct one in green) and the next question follows automatically.
 - The cheat sheet is not available during a speed game.
 - Existing requirements that forbid a countdown, require a continue button, or assume a fixed session length are narrowed to normal sessions. Normal sessions behave exactly as before.
 - No new question type is added, so nothing joins Mixed mode. Mixed speed games use the same Notes, Scales and Chords questions as normal Mixed sessions.
