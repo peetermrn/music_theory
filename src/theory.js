@@ -49,7 +49,7 @@ export function scale(root, type) {
 }
 
 // Notes of any scale, plus the parent-scale notes a pentatonic leaves out
-function spell(root, type) {
+export function spell(root, type) {
   const sub = SUBSETS[type];
   if (!sub) return { notes: scale(root, type), left: [], pos: null };
   const parent = scale(root, sub[0]);
@@ -72,7 +72,7 @@ export function triads(root, type) {
 }
 
 // The usual key name for a pitch class (Ab major, but G# minor), taken from KEYS
-const keyName = (p, type) => KEYS.find(([r, t]) => t === type && pc(r) === mod12(p))[0];
+export const keyName = (p, type) => KEYS.find(([r, t]) => t === type && pc(r) === mod12(p))[0];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
@@ -86,10 +86,12 @@ const build = (kind, prompt, answer, distractors) => ({
 });
 
 const NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const STRINGS = {
+export const STRINGS = {
   guitar: [["low E", "E"], ["A", "A"], ["D", "D"], ["G", "G"], ["B", "B"], ["high E", "E"]],
   bass: [["E", "E"], ["A", "A"], ["D", "D"], ["G", "G"]],
 };
+// The same open strings as MIDI notes, lowest first
+export const TUNING = { guitar: [40, 45, 50, 55, 59, 64], bass: [28, 33, 38, 43] };
 const rnd = (n) => Math.floor(Math.random() * n);
 const fretNote = (open, f) => NOTES[(NOTES.indexOf(open) + f) % 12];
 

@@ -1,6 +1,6 @@
 :root {
   --bg: #0f1e2b; --panel: #172b3b; --line: #2b4457; --ink: #f3efe4; --mute: #94a7b5;
-  --brass: #e0b458; --ok: #5fc59a; --bad: #ef7d6b;
+  --brass: #e0b458; --rose: #f08ba6; --ok: #5fc59a; --bad: #ef7d6b;
   --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -116,6 +116,49 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .switch { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; }
 .switch button { min-height: 44px; color: var(--mute); font-size: 16px; }
 .switch button.on { background: var(--panel); color: var(--brass); font-weight: 600; }
+.switch button:disabled { opacity: .4; }
+
+/* Visuals page: note circle with its dial, key readout, fretboard */
+.circle { width: 100%; max-width: 440px; align-self: center; touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab; }
+.circle text, .neck text { text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.ring { cursor: pointer; }
+.ring circle { fill: var(--line); stroke: var(--ink); stroke-width: 1.5px; }
+.ring text { fill: var(--ink); font-size: 15px; font-weight: 600; }
+/* The stencil lies over the ring: what it covers shows through faintly, what its windows leave open is at full strength */
+.dial { pointer-events: none; transform-origin: 160px 160px; transition: transform .35s ease; }
+.dial.held { transition: none; }
+.dial .band { fill: none; stroke: #1b3142; stroke-width: 62px; stroke-opacity: .55; }
+.dial .edge { fill: none; stroke: var(--brass); stroke-width: 5px; }
+.dial .root .edge { stroke: var(--rose); }
+.dial .root text { fill: var(--rose); }
+.dial text { fill: var(--brass); font-size: 14px; font-weight: 600; transition: transform .35s ease; }
+.dial.held text { transition: none; }
+.dial .shut text { fill: var(--mute); opacity: .5; }
+.key { display: flex; align-items: center; gap: 8px; }
+.key p { flex: 1; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.key strong { font: 400 22px var(--serif); white-space: nowrap; }
+.key span { font-size: 18px; letter-spacing: .04em; }
+.key small { color: var(--mute); font-size: 14px; }
+.step { flex: none; width: 48px; height: 48px; border: 2px solid var(--line); border-radius: 50%; color: var(--brass); font-size: 26px; line-height: 1; }
+.step:active { background: rgba(224,180,88,.12); }
+.heading.apart { margin-top: 36px; }
+.positions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.positions button { min-height: 44px; border: 2px solid var(--line); border-radius: 12px; color: var(--mute); font-size: 16px; }
+.positions button.on { border-color: var(--brass); background: var(--panel); color: var(--brass); font-weight: 600; }
+.neck { width: 100%; }
+.neck .string { stroke: var(--mute); stroke-width: 1px; }
+.neck .fret { stroke: var(--line); stroke-width: 1.5px; }
+.neck .nut { stroke: var(--ink); stroke-width: 4px; }
+.neck .fretno { fill: var(--mute); font-size: 11px; }
+.mark circle { fill: var(--line); stroke: var(--ink); stroke-width: 1.2px; }
+.mark text { fill: var(--ink); font-size: 10px; font-weight: 600; }
+.mark.root circle { fill: var(--rose); stroke: var(--rose); }
+.mark.root text { fill: #1a1405; }
+/* Dimmed marks stay solid, so the strings pass behind them as they do behind the full marks */
+.mark.dim circle { fill: var(--bg); stroke-opacity: .45; }
+.mark.dim text { opacity: .45; }
+.mark.dim.root text { fill: var(--rose); }
+
 .sheet .hint { color: var(--mute); font-size: 14px; }
 .sheet .credit { margin-top: 12px; color: var(--mute); font-size: 13px; }
 .sheet p + p { margin-top: 8px; }

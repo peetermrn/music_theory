@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
 import { EXERCISES, EAR_TOTAL } from "./ear.js";
 import Ear from "./Ear.jsx";
+import Visuals from "./Visuals.jsx";
 
 const TOTAL = 10;
 const SECTIONS = [
@@ -20,6 +21,9 @@ const SECTIONS = [
 const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", relatives: "Relatives", guitar: "Guitar", bass: "Bass" };
 // Ear-training exercises open their own page; they are not quiz modes and have no speed game
 const EAR = "Ear training";
+// The visuals page is for looking: no questions, no session and no speed game
+const VISUALS = "Visuals";
+const VISUAL = ["Circle & fretboard", "See a key's notes on a dial and on the neck"];
 const levels = (id) => EXERCISES.find((e) => e.id === id).levels;
 const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
@@ -130,6 +134,10 @@ function HowItWorks({ onClose }) {
         <p>Interval training has its own page with {levels("intervals").length} levels, from {levels("intervals")[0].length} intervals up to all {levels("intervals").at(-1).length}, and Custom, where you tick the intervals to drill. Each question plays two notes, the lower one first, and you pick the interval from one choice per interval. Replay the notes together or one at a time as often as you like.</p>
         <p>Chord training has its own page with {levels("chords").length} levels, from major and minor up to all {levels("chords").at(-1).length} chord types, and Custom. Each question plays a chord one note at a time and then together, and you pick its type, such as major or minor, from one choice per type. Replay it one by one or together.</p>
         <p>Degree training has its own page with {levels("degrees").length} levels and Custom. Each question plays a few chords to set a key, then one note, and you pick which degree of that key the note is. The key changes with every question. Replay everything, only the key or only the note. After answering, the key and the note are named.</p>
+        <h3>{VISUALS}</h3>
+        <p className="how long"><b>{VISUAL[0]}</b><span>{VISUAL[1]}</span></p>
+        <p>A page for looking, with no questions and no score. A circle shows the 12 notes, and a dial over it has one window for each note of the key. Turn the dial by dragging it, tapping a note or using the arrows, and the key changes. Major / Minor switches to the relative key, which uses the same notes, and the scale can be all seven notes or the pentatonic.</p>
+        <p>The fretboard below shows where the same key's notes are on guitar or bass, labelled with note names or degrees. Pick a position to see one shape to practise, with the rest of the notes dimmed. There are two sets of shapes: the five positions, and three notes per string.</p>
         <p className="credit">Piano: Salamander Grand Piano by Alexander Holm. Acoustic guitar: tonejs-instruments by Nicholaus Brosowsky, from University of Iowa recordings. Both CC BY 3.0; the guitar notes are shortened.</p>
       </div>
     </div>
@@ -148,6 +156,7 @@ export default function App() {
   const [cheat, setCheat] = useState(false);
   const [help, setHelp] = useState(false);
   const [ear, setEar] = useState(null); // id of the open ear-training exercise, shown instead of the home screen
+  const [visuals, setVisuals] = useState(false);
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -220,6 +229,8 @@ export default function App() {
 
   if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
+  if (visuals) return <Visuals onExit={() => setVisuals(false)} />;
+
   if (!mode) {
     return (
       <main className="page">
@@ -265,6 +276,16 @@ export default function App() {
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+        <section className="section">
+          <h2 className="heading">{VISUALS}</h2>
+          <div className="modes">
+            <div className="mode">
+              <button className="play" onClick={() => setVisuals(true)}>
+                <strong>{VISUAL[0]}</strong><span>{VISUAL[1]}</span>
+              </button>
+            </div>
           </div>
         </section>
         {help && <HowItWorks onClose={() => setHelp(false)} />}
