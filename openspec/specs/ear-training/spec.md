@@ -92,7 +92,7 @@ An ear-training question SHALL show one answer choice for every interval of the 
 - **THEN** all twelve choices and the sound controls are visible without scrolling
 
 ### Requirement: Automatic playback
-The interval SHALL be played automatically when a question is displayed. If the device does not allow sound to start by itself, the question SHALL still be shown and the interval SHALL play when the user taps Play both.
+The interval SHALL be played automatically when a question is displayed. If the device does not allow sound to start by itself, the question SHALL still be shown and the interval SHALL play when the user taps the control that plays the whole question again (Play both in interval training).
 
 #### Scenario: New question
 - **WHEN** the user taps Next
@@ -144,7 +144,7 @@ After an answer is selected the app SHALL mark the selected and the correct choi
 - **THEN** a major 3rd and then a perfect 5th are played from the question's starting note, and the question still counts as wrong
 
 ### Requirement: Results
-At the end of a session the app SHALL show the number of correct answers out of the total, the percentage, the average answer time in seconds rounded to one decimal place, and correct/total for each interval that was asked, ordered from the smallest interval to the largest. Answer time is measured from when the question is displayed until an answer is selected, including the automatic playback. The user SHALL be able to play again with the same intervals or return to the Interval training page. "Review mistakes" SHALL NOT be offered, and nothing SHALL be stored between sessions.
+At the end of a session the app SHALL show the number of correct answers out of the total, the percentage, the average answer time in seconds rounded to one decimal place, and correct/total for each interval that was asked, ordered from the smallest interval to the largest. Answer time is measured from when the question is displayed until an answer is selected, including the automatic playback. The user SHALL be able to play again with the same intervals or return to the Interval training page. "Review mistakes" SHALL NOT be offered, and no results SHALL be stored between sessions.
 
 #### Scenario: Results summary
 - **WHEN** a Level 2 session ends with 8 of 10 correct, in which a major 3rd was asked 4 times and answered correctly 3 times

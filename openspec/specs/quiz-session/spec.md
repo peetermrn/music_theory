@@ -23,7 +23,7 @@ The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mix
 
 #### Scenario: Ear training entry
 - **WHEN** the home screen is shown
-- **THEN** the heading "Ear training" appears below the fretboard modes, looking like the headings "Keys" and "Memorize the fretboard", with the entry "Interval training" under it and no ear-training level listed on the home screen
+- **THEN** the heading "Ear training" appears below the fretboard modes, looking like the headings "Keys" and "Memorize the fretboard", with the entries "Interval training", "Chord training" and "Degree training" under it and no ear-training level listed on the home screen
 
 #### Scenario: Opening ear training
 - **WHEN** the user taps "Interval training" on the home screen
@@ -38,7 +38,7 @@ The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mix
 - **THEN** the Visuals page is shown and no session has started
 
 ### Requirement: Session length
-A normal session SHALL consist of 10 questions, and the app SHALL avoid repeating the same question prompt within one normal session.
+A normal session SHALL consist of 10 questions, except a review session, which consists of the missed questions only, and the app SHALL avoid repeating the same question prompt within one normal session.
 
 #### Scenario: Session ends after ten questions
 - **WHEN** the user has answered the 10th question and continues

@@ -54,11 +54,11 @@ The overlay SHALL be readable on a phone-width screen without horizontal scrolli
 - **THEN** there is no horizontal scrolling and the last mode in the list can be brought into view
 
 ### Requirement: Explains ear training
-The overlay SHALL explain ear training separately from normal sessions: it has its own page with six levels and a Custom selection; two notes are played and the user picks the interval from one choice per interval; the notes can be replayed together or one at a time; the choices can be tapped after answering to hear them; the sound button switches between piano and acoustic guitar; and there is no speed game and no Review mistakes. It SHALL also credit the sources of the piano and guitar recordings.
+The overlay SHALL explain ear training separately from normal sessions, starting with interval training: interval training has its own page with six levels and a Custom selection; two notes are played and the user picks the interval from one choice per interval; the notes can be replayed together or one at a time. For every ear-training exercise it SHALL state that the choices can be tapped after answering to hear them, that the sound button switches between piano and acoustic guitar, and that there is no speed game and no Review mistakes. It SHALL also credit the sources of the piano and guitar recordings.
 
 #### Scenario: Ear training summary
 - **WHEN** the overlay is open
-- **THEN** it states that an ear-training question plays two notes, that they can be replayed together or singly, and that ear training has no speed game
+- **THEN** it states that an interval-training question plays two notes, that they can be replayed together or singly, and that ear training has no speed game
 
 #### Scenario: Not described as four choices
 - **WHEN** the overlay is open
@@ -91,7 +91,7 @@ The overlay SHALL explain degree training: it has its own page with four levels 
 - **THEN** "Degree training" is listed under "Ear training" after "Chord training", with a description
 
 ### Requirement: Explains the Visuals page
-The overlay SHALL list "Circle & fretboard" under the heading "Visuals", after the ear-training entries, with a one-line description. It SHALL explain that the page is for looking, with no questions or score; that turning the dial or tapping a note changes the key; that the Major / Minor switch shows the relative key, which uses the same notes; that the scale can be the seven notes or the pentatonic; that the fretboard below shows where the key's notes are on guitar or bass; and that a position can be selected to see one shape to practise, in either of two shape systems.
+The overlay SHALL list "Circle & fretboard" under the heading "Visuals", after the ear-training entries, with a one-line description. It SHALL explain that the page is for looking, with no questions or score; that turning the dial or tapping a note changes the key; that the Major / Minor switch shows the relative key, which uses the same notes; that the scale can be the seven notes or the pentatonic; that a pentatonic keeps its seven-note degree numbers on this page, unlike Notes mode, which counts its notes 1st to 5th; that the fretboard below shows where the key's notes are on guitar or bass; and that a position can be selected to see one shape to practise, in either of two shape systems.
 
 #### Scenario: Listed under Visuals
 - **WHEN** the overlay is open
@@ -100,6 +100,10 @@ The overlay SHALL list "Circle & fretboard" under the heading "Visuals", after t
 #### Scenario: Visuals summary
 - **WHEN** the overlay is open
 - **THEN** it states that the Visuals page has no questions, that turning the dial changes the key, and that the fretboard shows the same key's notes
+
+#### Scenario: Pentatonic numbering
+- **WHEN** the overlay is open
+- **THEN** it states that the Visuals page numbers a pentatonic's notes by their seven-note degrees, with an example of a note that Notes mode counts differently
 
 #### Scenario: Positions summary
 - **WHEN** the overlay is open

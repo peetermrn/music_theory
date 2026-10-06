@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Question generation for the key-based modes (Notes, Scales, Chords, Mixed). Questions train recall of which notes and diatonic triads belong to each major and natural minor key, and must never be phrased in a way that gives the answer away.
+Question generation for the key-based modes (Notes, Scales, Chords, Relatives, Mixed). Questions train recall of which notes and diatonic triads belong to each major and natural minor key, which notes make up its pentatonic, and which key is its relative, and must never be phrased in a way that gives the answer away.
 
 ## Requirements
 
@@ -39,7 +39,7 @@ Question prompts SHALL refer to scale degrees with Arabic ordinals (2nd, 5th) an
 - **THEN** the prompt reads "What chord is built on the 2nd degree of C major?" and not "What is the ii chord in C major?"
 
 ### Requirement: Notes mode
-Notes mode SHALL ask which note is at a given position of a scale from the selected scale groups: 1st–7th for a seven-note scale, 1st–5th for a pentatonic. The prompt SHALL name the scale in full. Distractors SHALL be plausible: other notes of the same scale and a semitone neighbour of the correct note, and for a pentatonic also a note of its parent scale that the pentatonic leaves out.
+Notes mode SHALL ask which note is at a given position of a scale from the selected scale groups: 1st–7th for a seven-note scale, 1st–5th for a pentatonic. A pentatonic's positions are counted within its own five notes, not by the degree numbers of its parent scale that the visuals capability shows. The prompt SHALL name the scale in full. Distractors SHALL be plausible: other notes of the same scale and a semitone neighbour of the correct note, and for a pentatonic also a note of its parent scale that the pentatonic leaves out.
 
 #### Scenario: Scale-degree note question
 - **WHEN** the question "What is the 5th note of A major?" is generated

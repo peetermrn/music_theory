@@ -18,7 +18,7 @@ The home screen SHALL offer, for each of the modes Notes, Scales, Chords, Relati
 - **THEN** a speed game starts with Relatives questions
 
 #### Scenario: Ear training has no speed entry
-- **WHEN** the home screen or the Interval training page is shown
+- **WHEN** the home screen or the Interval, Chord or Degree training page is shown
 - **THEN** the entries under "Ear training", the levels and Custom show no speed entry and no best score
 
 ### Requirement: Same questions as the normal mode

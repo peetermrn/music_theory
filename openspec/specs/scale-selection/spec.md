@@ -7,11 +7,11 @@ Lets the user choose on the home screen which groups of scales the key-based mod
 ## Requirements
 
 ### Requirement: Scale chips
-The home screen SHALL show, at the top of the "Keys" section, one toggle chip for each scale group: "Major & minor" (major and natural minor) and "Pentatonic" (major pentatonic and minor pentatonic). Each chip SHALL show whether its group is on.
+The home screen SHALL show, at the top of the "Keys" section, a row labelled "Scales" with one toggle chip for each scale group: "Major & minor" (major and natural minor) and "Pentatonic" (major pentatonic and minor pentatonic). Each chip SHALL show whether its group is on. Other capabilities refer to these chips as the "Scales" tick boxes, and to a chip that is on as ticked.
 
 #### Scenario: Chips shown
 - **WHEN** the home screen is shown
-- **THEN** the chips "Major & minor" and "Pentatonic" appear above the Notes card, each marked as on or off
+- **THEN** the chips "Major & minor" and "Pentatonic" appear in a row labelled "Scales" above the Notes card, each marked as on or off
 
 ### Requirement: Toggling scale groups
 Tapping a chip SHALL switch its group on or off independently of the other chips. At least one group SHALL always be on: tapping the only chip that is on SHALL leave it on.

@@ -39,7 +39,7 @@ Each fretboard mode SHALL also ask where a given note is on a given string, with
 - **THEN** the correct answer is "3rd fret" and the choices are listed from lowest to highest fret
 
 ### Requirement: Shared quiz flow
-Guitar and Bass questions SHALL use the same quiz session flow as every other mode, including timing, results and Review mistakes.
+Guitar and Bass questions SHALL use the same quiz session flow as every other quiz mode, including timing, results and Review mistakes.
 
 #### Scenario: Reviewing a fretboard mistake
 - **WHEN** the user reviews a missed fretboard question

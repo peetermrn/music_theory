@@ -69,7 +69,7 @@ A Major / Minor switch SHALL choose which kind of key is shown. Switching SHALL 
 - **THEN** the page shows G major with the same scale notes
 
 ### Requirement: Seven notes or pentatonic
-A switch SHALL choose between the full seven-note scale and its pentatonic. In Pentatonic, the dial SHALL close the windows of the two notes the pentatonic leaves out (the 4th and 7th of a major key, the 2nd and 6th of a minor key) and those notes SHALL be shown as outside the scale. The remaining windows SHALL keep their seven-note degree numbers.
+A switch SHALL choose between the full seven-note scale and its pentatonic. In Pentatonic, the dial SHALL close the windows of the two notes the pentatonic leaves out (the 4th and 7th of a major key, the 2nd and 6th of a minor key) and those notes SHALL be shown as outside the scale. The remaining windows SHALL keep their seven-note degree numbers. This differs on purpose from Notes mode in the theory-questions capability, which counts a pentatonic's notes 1st to 5th.
 
 #### Scenario: Major pentatonic
 - **WHEN** the page shows C major and the user switches to Pentatonic
@@ -84,7 +84,7 @@ A switch SHALL choose between the full seven-note scale and its pentatonic. In P
 - **THEN** the page shows A minor pentatonic with the same five scale notes
 
 ### Requirement: Key naming and spelling
-The page SHALL state the selected key by name, list its notes in order from the root, and name its relative key. Scale notes SHALL be spelled as that key spells them, everywhere on the page. A key reached by turning the dial SHALL have its usual name. A key reached with the Major / Minor switch SHALL be named from the scale it came from, so its notes keep their spelling. Notes outside the scale SHALL be written with flats in a key that has flats and with sharps otherwise.
+The page SHALL state the selected key by name, list its notes in order from the root, and name its relative key. Scale notes SHALL be spelled as that key spells them, everywhere on the page. A key reached by turning the dial SHALL have its usual name, the one in the theory-questions capability's list of supported keys. A key reached with the Major / Minor switch SHALL be named from the scale it came from, so its notes keep their spelling. Notes outside the scale SHALL be written with flats in a key that has flats and with sharps otherwise.
 
 #### Scenario: Readout
 - **WHEN** the page shows D major, 7 notes
@@ -137,7 +137,7 @@ The fretboard SHALL have a position selector offering All and one numbered entry
 - **THEN** position 1 is still selected and the same shape is highlighted two frets higher
 
 ### Requirement: Five-position shapes
-In the five-position system there SHALL be five positions. For a pentatonic, a position is the scale played upwards two notes on each string, from the lowest string to the highest. For a seven-note scale, a position is the pentatonic position of the same key plus the scale's two other notes wherever they fall between its lowest and highest note, placed inside its fret span or one fret outside it. Position 1 SHALL start on the root on the lowest string, and positions 2 to 5 on each next note of the pentatonic.
+In the five-position system there SHALL be five positions. For a pentatonic, a position is the scale played upwards two notes on each string, from the lowest string to the highest. For a seven-note scale, a position is the pentatonic position of the same key plus the scale's two other notes wherever they fall between its lowest and highest note, placed inside its fret span or one fret outside it. When such a note could go on either of two strings, it SHALL go on the one that keeps it inside the fret span, otherwise on the one with the lower fret, and never below the nut. Position 1 SHALL start on the root on the lowest string, and positions 2 to 5 on each next note of the pentatonic.
 
 #### Scenario: Pentatonic box
 - **WHEN** the page shows A minor, Pentatonic, on Guitar, position 1
