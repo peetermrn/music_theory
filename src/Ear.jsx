@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { EAR_TOTAL } from "./ear.js";
 import { play, stop, setVoice } from "./audio.js";
 
@@ -117,6 +117,9 @@ export default function Ear({ exercise: ex, onExit }) {
   // Each new question plays by itself; the tap that led to it has unlocked the sound
   useEffect(() => { if (q) replay(); }, [q]);
   useEffect(() => stop, []);
+  // Names the screen the branches below render; each new one opens scrolled to the top
+  const screen = !sel ? "page" : done ? "done" : `q${n}`;
+  useLayoutEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   if (!sel) {
     return (
