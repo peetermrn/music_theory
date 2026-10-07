@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
 import { EXERCISES, EAR_TOTAL } from "./ear.js";
 import Ear from "./Ear.jsx";
@@ -226,11 +226,6 @@ export default function App() {
       : setTimeout(next, picked === q.answer ? ADVANCE_MS : MISS_MS);
     return () => clearTimeout(id);
   }, [speed, mode, done, q, picked]);
-
-  // Names the screen the branches below render; a new screen must get its own name here.
-  // Each new screen opens scrolled to the top, before it is drawn.
-  const screen = ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
-  useLayoutEffect(() => window.scrollTo(0, 0), [screen]);
 
   if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
