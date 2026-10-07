@@ -15,7 +15,7 @@ There is no router. `App.jsx` picks what to render from state (`ear`, `visuals`,
 
 ## Decisions
 
-**A screen key plus a layout effect that scrolls the window to the top.** Each component derives a string naming the screen it is showing and runs `useLayoutEffect(() => window.scrollTo(0, 0), [screen])`.
+**A screen key plus a layout effect that scrolls the window to the top.** Each component derives a string naming the screen it is showing and runs `useLayoutEffect(() => { window.scrollTo(0, 0); }, [screen])`. The braces are required: see the risk on `scrollTo` returning a Promise below.
 - `App`: `ear ? \`ear:${ear}\` : visuals ? "visuals" : !mode ? "home" : done ? "done" : \`q${n}\``. "Play again" and "Review mistakes" go from `done` to `q0`, so they also start at the top.
 - `Ear`: `!sel ? "page" : done ? "done" : \`q${n}\``. App cannot see these screens, so Ear needs its own effect. Ear mounts fresh when opened, so its effect also covers the entry (App's effect does too; the second call is a no-op).
 - `useLayoutEffect` rather than `useEffect`: it runs after the DOM is updated but before the browser paints, so the new screen is never drawn at the old depth for a frame.
@@ -31,6 +31,7 @@ There is no router. `App.jsx` picks what to render from state (`ear`, `visuals`,
 
 ## Risks / Trade-offs
 
+- [Newer browsers return a Promise from `scrollTo`; an effect written as `() => window.scrollTo(0, 0)` hands it to React as the cleanup, React calls it on the next screen change and throws "is not a function", blanking every page after the home screen] → the effect body is wrapped in braces so it returns nothing. Found after release: the first version shipped without braces, was reverted, and was reapplied with them; tests had passed because the test browser's `scrollTo` still returned `undefined`.
 - [Speed games change `n` every few hundred milliseconds, so the effect runs on every question] → the page is already at the top there; `scrollTo(0, 0)` at the top does nothing visible and costs nothing measurable.
 - [A future screen is added without being reflected in the screen key] → it would inherit the scroll position again. Mitigated by keeping the key next to the render branches it mirrors, with a comment saying so.
 - [Ear's screen key and App's both fire when entering an exercise] → harmless double call, both to the top.
