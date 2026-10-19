@@ -28,7 +28,7 @@ After the first successful load the app SHALL work without a network connection,
 - **THEN** a full quiz session can be played
 
 ### Requirement: Phone-first layout
-The interface SHALL be usable one-handed on a phone screen, as a single column of content with tap-sized buttons and no horizontal scrolling. Within that column, the mode and ear-training entries on the home screen, the level entries on an ear-training page, and the answer choices of an ear-training question with more than five choices MAY be placed two abreast.
+The interface SHALL be usable one-handed on a phone screen, as a single column of content with tap-sized buttons and no horizontal scrolling. Within that column, the mode, ear-training and tool entries on the home screen, the level entries on an ear-training page, and the answer choices of an ear-training question with more than five choices MAY be placed two abreast.
 
 #### Scenario: Narrow screen
 - **WHEN** a quiz question is viewed on a phone-width screen
