@@ -2,7 +2,8 @@
 // Pure functions with no Web Audio or React, so they can be checked on generated samples.
 
 const THRESHOLD = 0.15; // a dip of the normalised difference below this counts as a period
-const FLOOR = 0.01;     // a frame quieter than this RMS level is silence
+const FLOOR = 0.001;    // a frame quieter than this RMS level (-60 dBFS) is silence. Kept low: with its processing off,
+                        // a phone microphone hears a guitar quietly. The dip threshold, not this, keeps noise out.
 const CLEAN = 0.02;     // a dip this deep is a clear period: the octave check leaves it alone
 const MAX_LAG = 800;    // longer periods are searched at half the sample rate
 const OCTAVE = 0.5;     // ...otherwise twice the period is taken when its dip is under this share of the first one's

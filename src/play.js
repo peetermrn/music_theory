@@ -58,7 +58,7 @@ const CLICK = 6;         // a slice with this many times the high-frequency ener
 const BEFORE = 8;        // ...among this many before it is a click
 const ATTACK = 1.5;      // a rise in level to this factor over the lowest of the last few analyses is also a pluck
 const REPLUCK = 250;     // no new pluck within this many milliseconds of the last; a human double pluck takes longer
-const FLOOR = 0.01;      // a quieter level is silence, not a pluck
+const FLOOR = 0.001;     // a quieter level (-60 dBFS) is silence, not a pluck
 
 // Calls onNote(midi) for each note played, once per pluck. A note still sounding when the question
 // changes is not played again, so it does not count on the next question. `mute(until)` ignores the
