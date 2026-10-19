@@ -40,11 +40,19 @@ While a steady note is heard, the page SHALL show its target note, how many cent
 - **THEN** the A string is shown with a reading of about −32 cents, not in tune, with the meter left of centre
 
 ### Requirement: No note heard
-When no clear note is heard, the page SHALL say so (for example "Play a note") and SHALL NOT show a reading from noise or speech. After a note stops, its last reading SHALL stay visible, dimmed, for about a second before the page returns to "Play a note".
+When no clear note is heard, the page SHALL say so (for example "Play a note") and SHALL NOT show a reading from noise or speech. After a note stops, its last reading SHALL stay visible, dimmed, until another note is heard or for about ten seconds, before the page returns to "Play a note". Plucking the same string again SHALL refresh the reading at once, even when the pluck is short.
 
 #### Scenario: Silence
 - **WHEN** the tuner is open in a quiet room
 - **THEN** the page shows "Play a note" and the meter shows no reading
+
+#### Scenario: Reading held after the note fades
+- **WHEN** the user plucks the high E string once and it fades after a second
+- **THEN** its reading stays on the page, dimmed, for about ten seconds or until another note is played
+
+#### Scenario: Plucking again
+- **WHEN** the user keeps plucking the same string with short plucks
+- **THEN** the reading is refreshed with each pluck and does not go back to "Play a note"
 
 ### Requirement: Automatic string detection
 With Guitar or Bass chosen and no string selected, the page SHALL show the string closest in pitch to the heard note, highlight that string, and measure the reading against it. Notes far from every string SHALL still be measured against the closest one.

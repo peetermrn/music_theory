@@ -9,9 +9,9 @@ const INSTRUMENTS = [["guitar", "Guitar"], ["bass", "Bass"], ["manual", "Manual"
 const RANGE = { guitar: [70, 420], bass: [35, 130], manual: [38, 1100] };
 const SPAN = 1.5;      // a selected string is searched within this factor (about 7 semitones) either way
 const IN_TUNE = 5;     // cents
-const STEADY = 3;      // analyses within a semitone of each other before a note is shown, so speech is ignored
+const STEADY = 3;      // analyses within a semitone of each other before a new note is shown, so speech is ignored
 const SMOOTH = 5;      // readings shown are the median of this many
-const DIM = 200, CLEAR = 1200; // milliseconds after the last note heard until its reading dims, then goes
+const DIM = 400, CLEAR = 10000; // milliseconds after the last note heard until its reading dims, then goes
 
 const median = (a) => [...a].sort((x, y) => x - y)[a.length >> 1];
 
@@ -19,7 +19,7 @@ export default function Tuner({ onExit }) {
   const [instrument, setInstrument] = useState("guitar");
   const [sel, setSel] = useState(null); // index of the selected string; null finds the string by itself
   const [view, setView] = useState(null); // { midi, string, cents, fresh } of the reading shown
-  const heard = useRef({ notes: [], cents: [], midi: null, at: 0 });
+  const heard = useRef({ notes: [], cents: [], midi: null, last: null, at: 0 });
 
   // One analysis: find the note, measure it against its target, and update what is shown
   const listen = (buf, rate, t) => {
@@ -31,13 +31,15 @@ export default function Tuner({ onExit }) {
       const m = midiOf(hz);
       h.notes = [...h.notes, m].slice(-STEADY);
       const steady = h.notes.length === STEADY && Math.max(...h.notes) - Math.min(...h.notes) < 1;
-      if (steady) {
-        const string = instrument === "manual" ? null
-          : sel ?? strings.reduce((best, s, i) => (Math.abs(s - m) < Math.abs(strings[best] - m) ? i : best), 0);
-        const midi = string == null ? Math.round(m) : strings[string];
+      const string = instrument === "manual" ? null
+        : sel ?? strings.reduce((best, s, i) => (Math.abs(s - m) < Math.abs(strings[best] - m) ? i : best), 0);
+      const midi = string == null ? Math.round(m) : strings[string];
+      // the note already shown, plucked again: one clean analysis keeps it going, so short plucks count
+      const again = midi === h.midi && Math.abs(m - h.last) < 1;
+      if (steady || again) {
         if (midi !== h.midi) { h.midi = midi; h.cents = []; } // a new target reads straight away
         h.cents = [...h.cents, centsFrom(hz, midi)].slice(-SMOOTH);
-        h.at = t;
+        h.at = t; h.last = m;
         return setView({ midi, string, cents: median(h.cents), fresh: true });
       }
     } else h.notes = [];
@@ -46,7 +48,7 @@ export default function Tuner({ onExit }) {
   };
   const { problem, retry } = useMic(listen);
 
-  const reset = () => { heard.current = { notes: [], cents: [], midi: null, at: 0 }; setView(null); };
+  const reset = () => { heard.current = { notes: [], cents: [], midi: null, last: null, at: 0 }; setView(null); };
   const choose = (id) => { setInstrument(id); setSel(null); reset(); };
   const tap = (i) => {
     if (sel === i) return setSel(null);
