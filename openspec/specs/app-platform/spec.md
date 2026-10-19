@@ -39,7 +39,7 @@ The interface SHALL be usable one-handed on a phone screen, as a single column o
 - **THEN** its twelve answer choices are shown in two columns, and all of them are visible and tappable without horizontal scrolling
 
 ### Requirement: Screens open at the top
-Each time the app shows a different screen, it SHALL show that screen from its top, whatever the scroll position of the screen before it. A different screen is the home screen, a quiz question, a quiz result, an ear-training exercise page, an ear-training question, an ear-training result, the Visuals page, the Metronome page or the Tuner page; each next question counts as a different screen. While the same screen stays shown, nothing the user does on it SHALL change its scroll position.
+Each time the app shows a different screen, it SHALL show that screen from its top, whatever the scroll position of the screen before it. A different screen is the home screen, a quiz question, a quiz result, an ear-training exercise page, an ear-training question, an ear-training result, a Play on guitar question, a Play on guitar result, the Visuals page, the Metronome page or the Tuner page; each next question counts as a different screen. While the same screen stays shown, nothing the user does on it SHALL change its scroll position.
 
 #### Scenario: Opening the Visuals page
 - **WHEN** the user scrolls the home screen down to the "Circle & fretboard" entry and taps it
@@ -68,6 +68,10 @@ Each time the app shows a different screen, it SHALL show that screen from its t
 #### Scenario: Using a tool does not scroll it
 - **WHEN** the user has scrolled the Metronome or Tuner page and changes the tempo, the beats per bar, the instrument or the selected string, or starts or stops the metronome
 - **THEN** the page stays scrolled where it was
+
+#### Scenario: Next Play on guitar question
+- **WHEN** the user has scrolled a Play on guitar question down and its right note is played
+- **THEN** the next question is shown from the top, with its prompt visible
 
 #### Scenario: Overlays do not scroll the screen
 - **WHEN** the user opens and closes the cheat sheet or "How it works" on a scrolled-down screen
