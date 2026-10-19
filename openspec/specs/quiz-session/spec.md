@@ -7,7 +7,7 @@ The quiz flow shared by every quiz mode (Notes, Scales, Chords, Relatives, Mixed
 ## Requirements
 
 ### Requirement: Mode selection
-The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, and selecting one SHALL start a new session in that mode. The modes SHALL be grouped under two headings, "Keys" (Notes, Scales, Chords, Relatives, Mixed) and "Memorize the fretboard" (Guitar, Bass), and every mode SHALL be directly selectable on the home screen without opening a submenu. Below the modes the home screen SHALL show a third heading, "Ear training", in the same style as the other two, for the ear-training exercises. Each entry under it SHALL open that exercise's page instead of starting a session. Ear-training exercises are not quiz modes: their sessions are defined by the ear-training capabilities, and the other requirements of this capability do not apply to them. Below "Ear training" the home screen SHALL show a fourth heading, "Visuals", in the same style, with the entry "Circle & fretboard". That entry SHALL open the Visuals page instead of starting a session, and SHALL have no speed game. The Visuals page is not a quiz mode: it is defined by the visuals capability, and the other requirements of this capability do not apply to it.
+The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mixed, Guitar and Bass, and selecting one SHALL start a new session in that mode. The modes SHALL be grouped under two headings, "Keys" (Notes, Scales, Chords, Relatives, Mixed) and "Memorize the fretboard" (Guitar, Bass), and every mode SHALL be directly selectable on the home screen without opening a submenu. Below the modes the home screen SHALL show a third heading, "Ear training", in the same style as the other two, for the ear-training exercises. Each entry under it SHALL open that exercise's page instead of starting a session. Ear-training exercises are not quiz modes: their sessions are defined by the ear-training capabilities, and the other requirements of this capability do not apply to them. Below "Ear training" the home screen SHALL show a fourth heading, "Visuals", in the same style, with the entry "Circle & fretboard". That entry SHALL open the Visuals page instead of starting a session, and SHALL have no speed game. The Visuals page is not a quiz mode: it is defined by the visuals capability, and the other requirements of this capability do not apply to it. Below "Visuals" the home screen SHALL show a fifth heading, "Tools", in the same style, with the entries "Metronome" and "Tuner". Each SHALL open its page instead of starting a session, and SHALL have no speed game. The tools are not quiz modes: they are defined by the metronome and tuner capabilities, and the other requirements of this capability do not apply to them.
 
 #### Scenario: Starting a session
 - **WHEN** the user taps a mode on the home screen
@@ -36,6 +36,14 @@ The home screen SHALL offer the quiz modes Notes, Scales, Chords, Relatives, Mix
 #### Scenario: Opening the Visuals page
 - **WHEN** the user taps "Circle & fretboard" on the home screen
 - **THEN** the Visuals page is shown and no session has started
+
+#### Scenario: Tools entries
+- **WHEN** the home screen is shown
+- **THEN** the heading "Tools" appears below the Visuals entry, looking like the other headings, with the entries "Metronome" and "Tuner" under it and no speed game button on either
+
+#### Scenario: Opening a tool
+- **WHEN** the user taps "Tuner" on the home screen
+- **THEN** the Tuner page is shown and no session has started
 
 ### Requirement: Session length
 A normal session SHALL consist of 10 questions, except a review session, which consists of the missed questions only, and the app SHALL avoid repeating the same question prompt within one normal session.
