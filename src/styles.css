@@ -159,6 +159,39 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .mark.dim text { opacity: .45; }
 .mark.dim.root text { fill: var(--rose); }
 
+/* Tools: a switch with any number of equal options, the metronome, the tuner */
+.switch.even { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.tempo { margin: 8px 0 0; display: flex; flex-direction: column; align-items: center; }
+.tempo strong { font: 400 96px/1 var(--serif); }
+.tempo span { color: var(--mute); text-transform: uppercase; letter-spacing: .14em; font-size: 14px; }
+.nudge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.nudge button { min-height: 52px; border: 2px solid var(--line); border-radius: 12px; color: var(--brass); font-size: 20px; font-weight: 600; }
+.nudge button:active { background: rgba(224,180,88,.12); }
+.beats { display: flex; justify-content: center; gap: 14px; padding: 12px 0; }
+.beats i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); }
+.beats i.first { border-color: var(--rose); }
+.beats i.lit { background: var(--brass); border-color: var(--brass); }
+.beats i.first.lit { background: var(--rose); border-color: var(--rose); }
+.go { margin-top: auto; }
+.reading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 12px 0; transition: opacity .2s; }
+.reading.stale { opacity: .45; }
+.reading .note { font: 400 clamp(48px, 15vw, 76px)/1 var(--serif); white-space: nowrap; }
+/* Meter from -50 to +50 cents, with the in-tune band in the middle */
+.meter { position: relative; width: 100%; height: 44px; }
+.meter::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--line); }
+.meter .zone { position: absolute; top: 0; bottom: 0; left: 45%; width: 10%; background: rgba(95,197,154,.15); border: 1px solid var(--ok); border-width: 0 1px; }
+.meter i { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--brass); transition: left .1s; }
+.reading.tuned .meter i { background: var(--ok); }
+.reading.tuned .note, .reading.tuned .cents { color: var(--ok); }
+.cents { margin: 0; min-height: 1.5em; color: var(--mute); font-size: 20px; }
+.strings { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.strings button { min-height: 52px; border: 2px solid var(--line); border-radius: 12px; color: var(--mute); font: 400 22px var(--serif); }
+.strings button.on { border-color: var(--brass); color: var(--ink); }
+.strings button.locked { border-color: var(--brass); background: var(--brass); color: #1a1405; }
+.sub.hint { font-size: 15px; }
+.problem { display: flex; flex-direction: column; gap: 12px; }
+.problem p { margin: 0; line-height: 1.5; }
+
 .sheet .hint { color: var(--mute); font-size: 14px; }
 .sheet .credit { margin-top: 12px; color: var(--mute); font-size: 13px; }
 .sheet p + p { margin-top: 8px; }

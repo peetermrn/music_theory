@@ -3,6 +3,8 @@ import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
 import { EXERCISES, EAR_TOTAL } from "./ear.js";
 import Ear from "./Ear.jsx";
 import Visuals from "./Visuals.jsx";
+import Metronome from "./Metronome.jsx";
+import Tuner from "./Tuner.jsx";
 
 const TOTAL = 10;
 const SECTIONS = [
@@ -24,6 +26,13 @@ const EAR = "Ear training";
 // The visuals page is for looking: no questions, no session and no speed game
 const VISUALS = "Visuals";
 const VISUAL = ["Circle & fretboard", "See a key's notes on a dial and on the neck"];
+// Tools are for practising with an instrument: no questions, no session and no speed game
+const TOOLS_TITLE = "Tools";
+const TOOLS = [
+  ["metronome", "Metronome", "A steady click with the first beat accented"],
+  ["tuner", "Tuner", "Tune a guitar or bass, or name any note you play"],
+];
+const TOOL_PAGE = { metronome: Metronome, tuner: Tuner };
 const levels = (id) => EXERCISES.find((e) => e.id === id).levels;
 const NAME = Object.fromEntries(SECTIONS.flatMap(([, modes]) => modes.map(([id, name]) => [id, name])));
 
@@ -138,6 +147,11 @@ function HowItWorks({ onClose }) {
         <p className="how long"><b>{VISUAL[0]}</b><span>{VISUAL[1]}</span></p>
         <p>A page for looking, with no questions and no score. A circle shows the 12 notes, and a dial over it has one window for each note of the key. Turn the dial by dragging it, tapping a note or using the arrows, and the key changes. Major / Minor switches to the relative key, which uses the same notes, and the scale can be all seven notes or the pentatonic. A pentatonic keeps its seven-note degree numbers here, so the note that Notes calls the 3rd note of A minor pentatonic is shown as 4.</p>
         <p>The fretboard below shows where the same key's notes are on guitar or bass, labelled with note names or degrees. Pick a position to see one shape to practise, with the rest of the notes dimmed. There are two sets of shapes: the five positions, and three notes per string.</p>
+        <h3>{TOOLS_TITLE}</h3>
+        {TOOLS.map(([id, name, desc]) => <p key={id} className="how"><b>{name}</b><span>{desc}</span></p>)}
+        <p>For practising with your instrument, with no questions and no score.</p>
+        <p>The metronome starts at 100 BPM. Change the tempo by 1 or 10 with the buttons, even while it plays, and choose how many beats are in a bar. The first beat of every bar has a higher click, and its light is a different colour. The screen stays on while it plays, and it stops when you leave the page.</p>
+        <p>The tuner listens through the microphone. Choose Guitar or Bass and play a string: it finds the string by itself and shows how many cents sharp or flat it is, and within 5 cents it shows In tune. Tap a string to hear its note and tune only that string; tap it again to go back. Manual names any note you play, with both spellings for the black keys. The microphone is only used while the Tuner page is open.</p>
         <p className="credit">Piano: Salamander Grand Piano by Alexander Holm. Acoustic guitar: tonejs-instruments by Nicholaus Brosowsky, from University of Iowa recordings. Both CC BY 3.0; the guitar notes are shortened.</p>
       </div>
     </div>
@@ -157,6 +171,7 @@ export default function App() {
   const [help, setHelp] = useState(false);
   const [ear, setEar] = useState(null); // id of the open ear-training exercise, shown instead of the home screen
   const [visuals, setVisuals] = useState(false);
+  const [tool, setTool] = useState(null); // id of the open tool, shown instead of the home screen
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -230,12 +245,14 @@ export default function App() {
   // Names the screen the branches below render; a new screen must get its own name here.
   // Each new screen opens scrolled to the top, before it is drawn. The braces matter: newer browsers
   // return a Promise from scrollTo, and React would call a returned value as the cleanup.
-  const screen = ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
+  const screen = tool ? `tool:${tool}` : ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
   useLayoutEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
   if (visuals) return <Visuals onExit={() => setVisuals(false)} />;
+
+  if (tool) { const Page = TOOL_PAGE[tool]; return <Page onExit={() => setTool(null)} />; }
 
   if (!mode) {
     return (
@@ -292,6 +309,18 @@ export default function App() {
                 <strong>{VISUAL[0]}</strong><span>{VISUAL[1]}</span>
               </button>
             </div>
+          </div>
+        </section>
+        <section className="section">
+          <h2 className="heading">{TOOLS_TITLE}</h2>
+          <div className="modes">
+            {TOOLS.map(([id, name, desc]) => (
+              <div key={id} className="mode">
+                <button className="play" onClick={() => setTool(id)}>
+                  <strong>{name}</strong><span>{desc}</span>
+                </button>
+              </div>
+            ))}
           </div>
         </section>
         {help && <HowItWorks onClose={() => setHelp(false)} />}

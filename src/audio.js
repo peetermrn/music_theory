@@ -1,4 +1,5 @@
-// Sound for ear training: short piano and guitar notes through the Web Audio API, nothing else.
+// Sound for ear training and the tools: short piano and guitar notes through the Web Audio API.
+// The tools also share the one audio context, for the metronome's clicks and the tuner's microphone.
 // Every export is safe to call where Web Audio is missing or blocked: the app then stays silent.
 
 // Tuning, in seconds unless noted
@@ -20,7 +21,7 @@ let live = [];    // gain nodes of the notes that are scheduled or sounding
 let calls = 0;    // a play() overtaken by a newer play() or stop() while loading is dropped
 const loads = {}; // voice -> promise of its decoded recordings
 
-function context() {
+export function context() {
   if (!ctx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     ctx = new Ctx();
@@ -76,14 +77,14 @@ export function stop() {
   live = [];
 }
 
-// Play the given steps `gap` seconds apart in the current voice, cutting off the previous sound.
+// Play the given steps `gap` seconds apart in `name`'s voice (the current voice by default),
+// cutting off the previous sound.
 // A step is one MIDI note, an array of notes that start together, or null for a rest.
-export async function play(steps, gap = GAP) {
+export async function play(steps, gap = GAP, name = voice) {
   try {
     stop();
     const call = calls;
     context(); // resumed here, inside the tap, so that playback after loading is allowed
-    const name = voice;
     const buffers = await load(name).catch(() => { delete loads[name]; throw new Error("unavailable"); }); // retried on the next play
     if (call !== calls) return;
     const at = ctx.currentTime + 0.03;
