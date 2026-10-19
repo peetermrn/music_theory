@@ -6,6 +6,27 @@ import { context } from "./audio.js";
 
 const EVERY = 50; // milliseconds between analyses
 
+// Sensitivity: the level in dBFS below which a frame is silence. Microphones differ, so the user sets it.
+// It is one value for the whole app, read on every analysis, so a change applies at once.
+const GATE_KEY = "micGate";
+const GATE = -60, QUIETEST = -80, LOUDEST = -30, STEP = 2;
+const clampGate = (db) => Math.max(QUIETEST, Math.min(LOUDEST, Math.round(db / STEP) * STEP));
+let gate = (() => {
+  try {
+    const db = Number(localStorage.getItem(GATE_KEY) ?? NaN);
+    return db >= QUIETEST && db <= LOUDEST ? clampGate(db) : GATE;
+  } catch { return GATE; }
+})();
+function setGate(db) {
+  gate = clampGate(db);
+  try { localStorage.setItem(GATE_KEY, String(gate)); } catch { /* ignore */ }
+}
+// The silence level as an RMS amplitude, as detect() and the listener read it
+export const floor = () => 10 ** (gate / 20);
+
+let level = null; // RMS of the latest analysis, or null while the microphone is not listening
+const dB = (rms) => 20 * Math.log10(Math.max(rms, 1e-9));
+
 // What the browser's error means for the user
 const PROBLEM = {
   NotAllowedError: (what) => `${what} needs the microphone, and it is blocked for this site. Allow it in the browser's site settings (tap the icon beside the address, or Settings › Site settings › Microphone), then try again.`,
@@ -55,6 +76,9 @@ export function useMic(listen) {
           if (t - last < EVERY) return;
           last = t;
           analyser.getFloatTimeDomainData(buf);
+          let power = 0;
+          for (let i = 0; i < buf.length; i++) power += buf[i] * buf[i];
+          level = Math.sqrt(power / buf.length);
           latest.current(buf, ctx.sampleRate, t);
         };
         frame = requestAnimationFrame(loop);
@@ -64,6 +88,7 @@ export function useMic(listen) {
     })();
     return () => {
       gone = true;
+      level = null;
       cancelAnimationFrame(frame);
       source?.disconnect();
       stream?.getTracks().forEach((t) => t.stop()); // what makes the phone drop its microphone indicator
@@ -80,5 +105,40 @@ export function MicProblem({ problem, what, onRetry }) {
       <p>{PROBLEM[problem](what)}</p>
       <button className="secondary" onClick={onRetry}>Try again</button>
     </div>
+  );
+}
+
+// The gear button for a listening page's header bar; `open` and `onToggle` belong to the page
+export function MicButton({ open, onToggle }) {
+  return (
+    <button className={`bulb gear ${open ? "on" : ""}`} onClick={onToggle} aria-expanded={open} aria-label="Microphone sensitivity">⚙</button>
+  );
+}
+
+// The sensitivity panel under the header: the live input level with the setting's slider on top of it,
+// both from quiet on the left to loud on the right, so the sound must reach past the thumb to be heard
+export function MicSettings() {
+  const [value, setValue] = useState(gate);
+  const [now, setNow] = useState(level);
+  useEffect(() => {
+    const id = setInterval(() => setNow(level), 100);
+    return () => clearInterval(id);
+  }, []);
+  const change = (db) => { setGate(db); setValue(gate); };
+  const at = (db) => `${((Math.max(QUIETEST, Math.min(LOUDEST, db)) - QUIETEST) / (LOUDEST - QUIETEST)) * 100}%`;
+  const heard = now != null && dB(now) >= value;
+
+  return (
+    <section className="mic" aria-label="Microphone sensitivity">
+      <p className="heading">Microphone sensitivity</p>
+      <div className="level">
+        <i className={heard ? "heard" : ""} style={{ width: now == null ? 0 : at(dB(now)) }} />
+        <input type="range" min={QUIETEST} max={LOUDEST} step={STEP} value={value}
+          onChange={(e) => change(Number(e.target.value))} aria-label="Sensitivity: more sensitive to the left" />
+      </div>
+      <div className="ends"><span>More sensitive</span><span>Less sensitive</span></div>
+      <p className="sub hint">Play a string: the bar should pass the slider. In silence it should stay below it.</p>
+      <button className="ghost small" onClick={() => change(GATE)} disabled={value === GATE}>Reset</button>
+    </section>
   );
 }

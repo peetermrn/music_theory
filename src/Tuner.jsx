@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { play } from "./audio.js";
-import { useMic, MicProblem } from "./Mic.jsx";
+import { useMic, MicProblem, MicButton, MicSettings, floor } from "./Mic.jsx";
 import { TUNING } from "./theory.js";
 import { detect, midiOf, hzOf, centsFrom, noteName, letter } from "./pitch.js";
 
@@ -19,6 +19,7 @@ export default function Tuner({ onExit }) {
   const [instrument, setInstrument] = useState("guitar");
   const [sel, setSel] = useState(null); // index of the selected string; null finds the string by itself
   const [view, setView] = useState(null); // { midi, string, cents, fresh } of the reading shown
+  const [tuning, setTuning] = useState(false); // the microphone sensitivity panel is open
   const heard = useRef({ notes: [], cents: [], midi: null, last: null, at: 0 });
 
   // One analysis: find the note, measure it against its target, and update what is shown
@@ -26,7 +27,7 @@ export default function Tuner({ onExit }) {
     const strings = TUNING[instrument];
     const h = heard.current;
     const range = sel != null ? [hzOf(strings[sel]) / SPAN, hzOf(strings[sel]) * SPAN] : RANGE[instrument];
-    const hz = detect(buf, rate, range, instrument !== "manual" && sel == null);
+    const hz = detect(buf, rate, range, instrument !== "manual" && sel == null, floor());
     if (hz) {
       const m = midiOf(hz);
       h.notes = [...h.notes, m].slice(-STEADY);
@@ -66,7 +67,9 @@ export default function Tuner({ onExit }) {
     <main className="page">
       <header className="bar">
         <button className="ghost small" onClick={onExit}>‹ Back</button>
+        <MicButton open={tuning} onToggle={() => setTuning(!tuning)} />
       </header>
+      {tuning && <MicSettings />}
       <h1 className="title">Tuner</h1>
       <div className="switch even" role="group" aria-label="Instrument">
         {INSTRUMENTS.map(([id, text]) => (

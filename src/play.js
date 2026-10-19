@@ -58,12 +58,11 @@ const CLICK = 6;         // a slice with this many times the high-frequency ener
 const BEFORE = 8;        // ...among this many before it is a click
 const ATTACK = 1.5;      // a rise in level to this factor over the lowest of the last few analyses is also a pluck
 const REPLUCK = 250;     // no new pluck within this many milliseconds of the last; a human double pluck takes longer
-const FLOOR = 0.001;     // a quieter level (-60 dBFS) is silence, not a pluck
 
 // Calls onNote(midi) for each note played, once per pluck. A note still sounding when the question
 // changes is not played again, so it does not count on the next question. `mute(until)` ignores the
-// app's own sound.
-export function listener(onNote) {
+// app's own sound. `floor()` gives the RMS level below which a frame is silence, not a pluck or a note.
+export function listener(onNote, floor) {
   let recent = [], held = null, quiet = null, levels = [], slices = [], last = null, plucked = -Infinity, muted = 0;
   return {
     hear(buf, rate, t) {
@@ -80,12 +79,13 @@ export function listener(onNote) {
         if (slices.length === BEFORE && sharp > Math.min(...slices) * CLICK) click = true;
         slices = [...slices, sharp].slice(-BEFORE);
       }
-      const attack = rms > FLOOR && (click || rms > Math.min(...levels) * ATTACK) && t - plucked >= REPLUCK;
+      const silence = floor();
+      const attack = rms > silence && (click || rms > Math.min(...levels) * ATTACK) && t - plucked >= REPLUCK;
       levels = [...levels, rms].slice(-4);
       if (t < muted) { recent = []; held = null; return; }
       // a new pluck: the same note counts again, once it has settled
       if (attack) { held = null; recent = []; plucked = t; }
-      const hz = detect(buf, rate, RANGE, true);
+      const hz = detect(buf, rate, RANGE, true, silence);
       if (!hz) {
         recent = [];
         quiet ??= t;

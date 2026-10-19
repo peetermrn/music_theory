@@ -2,8 +2,8 @@
 // Pure functions with no Web Audio or React, so they can be checked on generated samples.
 
 const THRESHOLD = 0.15; // a dip of the normalised difference below this counts as a period
-const FLOOR = 0.001;    // a frame quieter than this RMS level (-60 dBFS) is silence. Kept low: with its processing off,
-                        // a phone microphone hears a guitar quietly. The dip threshold, not this, keeps noise out.
+const FLOOR = 0.001;    // by default a frame quieter than this RMS level (-60 dBFS) is silence. Kept low: with its processing
+                        // off, a phone microphone hears a guitar quietly. The dip threshold, not this, keeps noise out.
 const CLEAN = 0.02;     // a dip this deep is a clear period: the octave check leaves it alone
 const MAX_LAG = 800;    // longer periods are searched at half the sample rate
 const OCTAVE = 0.5;     // ...otherwise twice the period is taken when its dip is under this share of the first one's
@@ -11,16 +11,17 @@ const OCTAVE = 0.5;     // ...otherwise twice the period is taken when its dip i
 // The frequency heard in `buf` between `lo` and `hi` Hz, or null when no clear note is there.
 // `octaveCheck` guards against reading an octave too high when the fundamental is weak, as a phone
 // microphone hears a bass: at half the true period the dip is shallow, at the true period it is deep.
-export function detect(buf, rate, [lo, hi], octaveCheck = false) {
+// A frame quieter than the RMS level `floor` is silence; the user's microphone sensitivity sets it.
+export function detect(buf, rate, [lo, hi], octaveCheck = false, floor = FLOOR) {
   // Low notes need long lags: at half the sample rate the work is a quarter, with no loss of accuracy
   if (rate / lo > MAX_LAG) {
     const half = new Float32Array(buf.length >> 1);
     for (let i = 0; i < half.length; i++) half[i] = (buf[2 * i] + buf[2 * i + 1]) / 2;
-    return detect(half, rate / 2, [lo, hi], octaveCheck);
+    return detect(half, rate / 2, [lo, hi], octaveCheck, floor);
   }
   let power = 0;
   for (let i = 0; i < buf.length; i++) power += buf[i] * buf[i];
-  if (Math.sqrt(power / buf.length) < FLOOR) return null;
+  if (Math.sqrt(power / buf.length) < floor) return null;
 
   const minLag = Math.max(2, Math.floor(rate / hi));
   const maxLag = Math.min(Math.ceil(rate / lo), Math.floor(buf.length / 2) - 1);

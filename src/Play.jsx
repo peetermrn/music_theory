@@ -3,7 +3,7 @@ import { play, stop } from "./audio.js";
 import { TUNING } from "./theory.js";
 import { KINDS, listener, showMap } from "./play.js";
 import { Fretboard } from "./Visuals.jsx";
-import { useMic, MicProblem } from "./Mic.jsx";
+import { useMic, MicProblem, MicButton, MicSettings, floor } from "./Mic.jsx";
 
 const TOTAL = 10;    // questions per session
 const ADVANCE = 1000; // milliseconds the right note is shown before the next question
@@ -35,13 +35,14 @@ export default function Play({ kind, title, onExit }) {
   const [revealed, setRevealed] = useState(false);
   const [done, setDone] = useState(false);
   const [deaf, setDeaf] = useState(false); // the microphone is unavailable
+  const [tuning, setTuning] = useState(false); // the microphone sensitivity panel is open
   const t0 = useRef(performance.now());
   const time = useRef(null); // seconds until the right note, once it is played
 
   // The listener lives for the whole session, so a note still ringing does not answer the next question
   const onNote = useRef();
   const ear = useRef(null);
-  if (!ear.current) ear.current = listener((m) => onNote.current(m));
+  if (!ear.current) ear.current = listener((m) => onNote.current(m), floor);
   // A note played once is searching; the same note played again is the answer
   const pending = useRef(null);
   onNote.current = (m) => {
@@ -129,7 +130,9 @@ export default function Play({ kind, title, onExit }) {
       <header className="bar">
         <button className="ghost small" onClick={() => { stop(); onExit(); }}>Quit</button>
         <span>{n + 1} / {TOTAL} · {score} right</span>
+        <MicButton open={tuning} onToggle={() => setTuning(!tuning)} />
       </header>
+      {tuning && <MicSettings />}
       <h2 className="prompt">{q.prompt}</h2>
       {q.target != null && <button className="sound both" onClick={() => sound(q)}>▶ Hear it again</button>}
       <div className={`reading ${solved ? "tuned" : revealed ? "revealed" : ""}`} aria-live="polite">

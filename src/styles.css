@@ -192,6 +192,24 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .sub.hint { font-size: 15px; }
 .problem { display: flex; flex-direction: column; gap: 12px; }
 .problem p { margin: 0; line-height: 1.5; }
+/* Microphone sensitivity: the input level fills the track, the slider's thumb is the silence level */
+.bulb.gear { color: var(--mute); }
+.bulb.gear.on { color: var(--brass); }
+.mic { display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.mic .heading { margin: 0; }
+.mic .hint { margin: 0; }
+.mic .ghost { align-self: flex-end; }
+.mic .ghost:disabled { opacity: .4; }
+.level { position: relative; height: 44px; }
+.level i { position: absolute; left: 0; top: 50%; height: 14px; margin-top: -7px; border-radius: 7px; background: var(--mute); opacity: .5; transition: width .1s; }
+.level i.heard { background: var(--ok); opacity: 1; }
+.level::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 14px; margin-top: -7px; border-radius: 7px; background: var(--line); }
+.level input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: none; -webkit-appearance: none; appearance: none; }
+.level input::-webkit-slider-runnable-track { height: 100%; background: none; }
+.level input::-moz-range-track { background: none; }
+.level input::-webkit-slider-thumb { -webkit-appearance: none; width: 8px; height: 44px; border-radius: 4px; background: var(--brass); }
+.level input::-moz-range-thumb { width: 8px; height: 44px; border: 0; border-radius: 4px; background: var(--brass); }
+.ends { display: flex; justify-content: space-between; color: var(--mute); font-size: 14px; }
 
 .sheet .hint { color: var(--mute); font-size: 14px; }
 .sheet .credit { margin-top: 12px; color: var(--mute); font-size: 13px; }

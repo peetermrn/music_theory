@@ -137,3 +137,10 @@ The overlay SHALL explain that Play on guitar questions are answered by playing 
 #### Scenario: Play on guitar summary
 - **WHEN** the overlay is open
 - **THEN** it states that an answer is a note played twice in a row on the guitar, heard through the microphone, and that only a right first answer scores
+
+### Requirement: Explains microphone sensitivity
+The overlay SHALL state, in its explanations of the Tuner and of Play on guitar, that if the microphone does not hear the guitar or reacts to noise, its sensitivity can be adjusted with the gear button on those pages.
+
+#### Scenario: Sensitivity explained
+- **WHEN** the overlay is open
+- **THEN** the Tuner and Play on guitar explanations say that the gear button adjusts the microphone sensitivity
