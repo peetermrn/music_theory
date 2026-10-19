@@ -183,6 +183,7 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .meter i { position: absolute; top: 0; bottom: 0; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--brass); transition: left .1s; }
 .reading.tuned .meter i { background: var(--ok); }
 .reading.tuned .note, .reading.tuned .cents { color: var(--ok); }
+.reading.revealed .note { color: var(--brass); }
 .cents { margin: 0; min-height: 1.5em; color: var(--mute); font-size: 20px; }
 .strings { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
 .strings button { min-height: 52px; border: 2px solid var(--line); border-radius: 12px; color: var(--mute); font: 400 22px var(--serif); }

@@ -151,7 +151,7 @@ function Circle({ root, type, map, onRoot }) {
 const W = 320, NUT = 20, ROW = 26, PAD = 16, FRETS = 12;
 const NUMBERED = [3, 5, 7, 9, 12, 15, 17];
 
-function Fretboard({ tuning, map, shape, labels }) {
+export function Fretboard({ tuning, map, shape, labels }) {
   // The neck keeps its length and slides up only for a position that reaches past the 12th fret
   const top = shape ? Math.max(...shape.flat()) : 0;
   const first = Math.max(0, top - FRETS);

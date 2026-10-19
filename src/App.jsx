@@ -5,6 +5,7 @@ import Ear from "./Ear.jsx";
 import Visuals from "./Visuals.jsx";
 import Metronome from "./Metronome.jsx";
 import Tuner from "./Tuner.jsx";
+import Play from "./Play.jsx";
 
 const TOTAL = 10;
 const SECTIONS = [
@@ -21,6 +22,13 @@ const SECTIONS = [
   ]],
 ];
 const LABEL = { notes: "Notes", scales: "Scales", chords: "Chords", relatives: "Relatives", guitar: "Guitar", bass: "Bass" };
+// Play on guitar: each entry starts a session answered by playing; no speed game
+const PLAY_TITLE = "Play on guitar";
+const PLAY = [
+  ["keys", "Key notes", "Play a note of a key, in any octave"],
+  ["fretboard", "Fretboard notes", "Play a note on the string it names"],
+  ["back", "Play it back", "Hear a note, then find it on the neck"],
+];
 // Ear-training exercises open their own page; they are not quiz modes and have no speed game
 const EAR = "Ear training";
 // The visuals page is for looking: no questions, no session and no speed game
@@ -137,6 +145,9 @@ function HowItWorks({ onClose }) {
             {modes.map(([id, name, desc]) => <p key={id} className="how"><b>{name}</b><span>{desc}</span></p>)}
           </div>
         ))}
+        <h3>{PLAY_TITLE}</h3>
+        {PLAY.map(([id, name, desc]) => <p key={id} className="how long"><b>{name}</b><span>{desc}</span></p>)}
+        <p>Answer on your guitar: the app listens through the microphone. Play a note twice in a row to give it as your answer; a note played once is only searching, so you can look for the note without losing the question. Key notes takes the note in any octave; Fretboard notes and Play it back need the exact pitch. If your answer is wrong, keep going until you find it, but only a right first answer scores. Show me reveals the answer, with its place on the neck, and counts the question as missed. The app hears the pitch, not the string, so play on the string the question names. Tune with the Tuner first.</p>
         <h3>{EAR}</h3>
         {EXERCISES.map(({ id, title, desc }) => <p key={id} className="how long"><b>{title}</b><span>{desc}</span></p>)}
         <p>An ear-training session is {EAR_TOTAL} questions with no time limit. After answering, tap any choice to hear it and compare. The sound button switches between piano and acoustic guitar. There is no speed game and no Review mistakes.</p>
@@ -172,6 +183,7 @@ export default function App() {
   const [ear, setEar] = useState(null); // id of the open ear-training exercise, shown instead of the home screen
   const [visuals, setVisuals] = useState(false);
   const [tool, setTool] = useState(null); // id of the open tool, shown instead of the home screen
+  const [playKind, setPlayKind] = useState(null); // kind of the running Play on guitar session
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -245,12 +257,14 @@ export default function App() {
   // Names the screen the branches below render; a new screen must get its own name here.
   // Each new screen opens scrolled to the top, before it is drawn. The braces matter: newer browsers
   // return a Promise from scrollTo, and React would call a returned value as the cleanup.
-  const screen = tool ? `tool:${tool}` : ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
+  const screen = playKind ? `play:${playKind}` : tool ? `tool:${tool}` : ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
   useLayoutEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
   if (visuals) return <Visuals onExit={() => setVisuals(false)} />;
+
+  if (playKind) return <Play kind={playKind} title={PLAY.find(([id]) => id === playKind)[1]} onExit={() => setPlayKind(null)} />;
 
   if (tool) { const Page = TOOL_PAGE[tool]; return <Page onExit={() => setTool(null)} />; }
 
@@ -289,6 +303,18 @@ export default function App() {
             </div>
           </section>
         ))}
+        <section className="section">
+          <h2 className="heading">{PLAY_TITLE}</h2>
+          <div className="modes">
+            {PLAY.map(([id, name, desc]) => (
+              <div key={id} className="mode">
+                <button className="play" onClick={() => setPlayKind(id)}>
+                  <strong>{name}</strong><span>{desc}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
         <section className="section">
           <h2 className="heading">{EAR}</h2>
           <div className="modes">

@@ -76,7 +76,7 @@ export const keyName = (p, type) => KEYS.find(([r, t]) => t === type && pc(r) ==
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
-const ord = (n) => n + ["th", "st", "nd", "rd"][n > 3 ? 0 : n];
+export const ord = (n) => n + ["th", "st", "nd", "rd"][n > 3 ? 0 : n];
 
 const build = (kind, prompt, answer, distractors) => ({
   kind,
