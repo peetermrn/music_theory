@@ -6,14 +6,17 @@ context: |
   Personal music-theory quiz app for one user, used on a phone in 2-5 minute sessions.
   Priority is that it stays fast and simple enough to open for a 2-minute practice.
   Keep it deliberately small: no backend, database, accounts, sync, or large settings
-  system. Do not add dependencies or a test framework unless a proposal argues for it.
+  system. Do not add dependencies unless a proposal argues for it.
   Questions must test recall: never phrase a prompt so the notation gives the answer
   away (no Roman numerals for chords; use "2nd degree", not "ii").
   All questions are generated programmatically from theory data, never hand-written
   lists, and wrong answers must be plausible rather than random.
   A change must not remove or alter existing modes unless the proposal says so.
-  There is no automated test suite; verify with `npm run build` and by playing the
-  affected mode in `npm run dev`.
+  Verify with `npm test`, `npm run build`, and by playing the affected mode in `npm run dev`.
+  The suite (Vitest, in tests/) has one file per capability, tests/<capability>.test.js(x),
+  grouped by requirement and named after scenarios; tests/test-suite.test.js fails when a
+  requirement or scenario has no test of the same name. A change that adds or alters a
+  requirement updates that capability's tests in the same change.
   docs/plan1.md and docs/plan2.md are the historical prompts the app was built from.
   openspec/specs/ is the source of truth; plan1.md "Future Features" is the backlog.
 
@@ -22,4 +25,5 @@ rules:
     - State what is out of scope
     - Say whether the new question type joins Mixed mode (default is no)
   tasks:
-    - End with a task to run `npm run build` and manually play the affected mode
+    - Include tasks to add or update the tests of every requirement the change adds or alters
+    - End with a task to run `npm test` and `npm run build` and manually play the affected mode

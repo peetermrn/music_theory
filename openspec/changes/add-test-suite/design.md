@@ -28,12 +28,12 @@ A spec rule that holds for every question (four distinct choices, the answer amo
 
 ### Fakes at the module boundaries
 - **Sound:** page tests mock `audio.js` and assert on the steps passed to `play()`, the gap and the voice. `audio.js` itself is tested against a fake `AudioContext` and `fetch`, checking start times, voices, `stop()`, and staying silent without Web Audio or recordings.
-- **Microphone:** `useMic` is tested once against fake `getUserMedia`, `AudioContext` and visibility events. Pages that listen are tested with `useMic` replaced by a fake that hands the page's listen callback to the test, which then feeds it generated samples (Tuner) or calls the note callback directly (Play on guitar, Scale runs, by wrapping `listener` from play.js).
+- **Microphone:** `useMic` runs for real against a fake `getUserMedia`, a fake `AudioContext` whose analyser returns generated sound, and visibility events, to check when the microphone is taken and released and the sensitivity setting end to end. Elsewhere `useMic` is replaced by a fake that hands the page's listen callback to the test, which feeds it generated frames: tones for the Tuner, plucks through the app's real listener for Play on guitar and Scale runs, so the "played twice", "once per pluck" and "still ringing" rules are exercised as on a phone.
 - **Time:** Vitest's fake timers drive the speed-game countdown, the auto-advance of Play on guitar, the tuner's dimming and the metronome's scheduler. `performance.now` is faked with them, so answer times are exact.
 - **Storage:** `localStorage` is cleared before each test. Blocked storage is a `localStorage` whose methods throw.
 
 ### Generated sound for pitch detection and the listener
-`detect()` and `listener()` are fed sine tones and decaying, harmonic-rich plucks generated at 48 kHz in 4096-sample frames 50 ms apart, as `useMic` delivers them. That checks the tuner's 2-cent accuracy, the bass octave guard, the silence floor, a held note counting once, a re-pluck counting again, and the app's own sound being muted, without a microphone.
+`detect()` and `listener()` are fed sine tones and decaying, harmonic-rich plucks, each starting with a short burst of noise for the pick's click, generated at 48 kHz in 4096-sample frames 50 ms apart, as `useMic` delivers them. That checks the tuner's 2-cent accuracy, the bass octave guard, the silence floor, a held note counting once, a re-pluck counting again, and the app's own sound being muted, without a microphone.
 
 ### Stored-value modules are re-imported
 Mic.jsx reads the stored sensitivity when it is first imported. Tests of "kept on the device" set `localStorage` and then re-import the module with `vi.resetModules()`.
