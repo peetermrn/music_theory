@@ -62,7 +62,8 @@ const REPLUCK = 250;     // no new pluck within this many milliseconds of the la
 // Calls onNote(midi) for each note played, once per pluck. A note still sounding when the question
 // changes is not played again, so it does not count on the next question. `mute(until)` ignores the
 // app's own sound. `floor()` gives the RMS level below which a frame is silence, not a pluck or a note.
-export function listener(onNote, floor) {
+// `range` is the lowest and highest frequency heard, in Hz.
+export function listener(onNote, floor, range = RANGE) {
   let recent = [], held = null, quiet = null, levels = [], slices = [], last = null, plucked = -Infinity, muted = 0;
   return {
     hear(buf, rate, t) {
@@ -85,7 +86,7 @@ export function listener(onNote, floor) {
       if (t < muted) { recent = []; held = null; return; }
       // a new pluck: the same note counts again, once it has settled
       if (attack) { held = null; recent = []; plucked = t; }
-      const hz = detect(buf, rate, RANGE, true, silence);
+      const hz = detect(buf, rate, range, true, silence);
       if (!hz) {
         recent = [];
         quiet ??= t;

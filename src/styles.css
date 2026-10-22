@@ -158,6 +158,10 @@ h1.title { margin: 0; font-size: clamp(38px, 12vw, 52px); }
 .mark.dim circle { fill: var(--bg); stroke-opacity: .45; }
 .mark.dim text { opacity: .45; }
 .mark.dim.root text { fill: var(--rose); }
+/* A note of a scale run once it is played; a root keeps its rose ring */
+.mark.played circle { fill: var(--ok); stroke: var(--ok); }
+.mark.played text { fill: var(--bg); }
+.mark.played.root circle { stroke: var(--rose); stroke-width: 3px; }
 
 /* Tools: a switch with any number of equal options, the metronome, the tuner */
 .switch.even { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
@@ -252,3 +256,18 @@ h1.score { margin: 0; }
   display: inline-block; margin-left: 12px; padding: 4px 10px; border-radius: 999px; vertical-align: middle;
   background: var(--brass); color: #1a1405; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
 }
+
+/* Scale runs: the map of keys by position, filled in as runs get clean. State is shown by fill and
+   outline, not by colour alone: empty, half filled, filled, filled with a dashed outline */
+.runmap { display: grid; grid-template-columns: 3.4em repeat(5, 1fr); gap: 6px; align-items: center; }
+.runmap .pos { text-align: center; color: var(--mute); font-size: 14px; }
+.runmap .root { font: 400 18px var(--serif); }
+.cell { display: block; min-height: 44px; border: 2px solid var(--line); border-radius: 8px; }
+.cell.seen { border-color: var(--brass); background: linear-gradient(to top, var(--brass) 50%, transparent 50%); }
+.cell.known { border-color: var(--brass); background: var(--brass); }
+.cell.due { border: 2px dashed var(--ink); background: rgba(224,180,88,.55); }
+.runmap .cell.next { box-shadow: 0 0 0 3px var(--ok); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; color: var(--mute); font-size: 14px; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend .cell { width: 18px; min-height: 18px; height: 18px; border-radius: 4px; }
+.now { color: var(--ink); font-weight: 600; }

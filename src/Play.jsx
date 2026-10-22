@@ -17,7 +17,7 @@ function nextQuestion(kind, seen) {
 }
 
 // Mounted only on a question, so the microphone is released on the results screen
-function Listening({ hear, onProblem }) {
+export function Listening({ hear, onProblem }) {
   const { problem, retry } = useMic(hear);
   useEffect(() => onProblem(!!problem), [problem]);
   return problem ? <MicProblem problem={problem} what="Play on guitar" onRetry={retry} /> : null;

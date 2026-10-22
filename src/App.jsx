@@ -3,6 +3,7 @@ import { makeQuestion, GROUPS, DEFAULT_GROUPS } from "./theory.js";
 import { EXERCISES, EAR_TOTAL } from "./ear.js";
 import Ear from "./Ear.jsx";
 import Visuals from "./Visuals.jsx";
+import Runs from "./Runs.jsx";
 import Metronome from "./Metronome.jsx";
 import Tuner from "./Tuner.jsx";
 import Play from "./Play.jsx";
@@ -28,7 +29,9 @@ const PLAY = [
   ["keys", "Key notes", "Play a note of a key, in any octave"],
   ["fretboard", "Fretboard notes", "Play a note on the string it names"],
   ["back", "Play it back", "Hear a note, then find it on the neck"],
+  ["runs", "Scale runs", "Play a position up and back, then from memory"],
 ];
+const RUNS = "runs"; // opens the Scale runs page instead of a session
 // Ear-training exercises open their own page; they are not quiz modes and have no speed game
 const EAR = "Ear training";
 // The visuals page is for looking: no questions, no session and no speed game
@@ -148,6 +151,7 @@ function HowItWorks({ onClose }) {
         <h3>{PLAY_TITLE}</h3>
         {PLAY.map(([id, name, desc]) => <p key={id} className="how long"><b>{name}</b><span>{desc}</span></p>)}
         <p>Answer on your guitar: the app listens through the microphone. Play a note twice in a row to give it as your answer; a note played once is only searching, so you can look for the note without losing the question. Key notes takes the note in any octave; Fretboard notes and Play it back need the exact pitch. If your answer is wrong, keep going until you find it, but only a right first answer scores. Show me reveals the answer, with its place on the neck, and counts the question as missed. The app hears the pitch, not the string, so play on the string the question names. Tune with the Tuner first. If it does not hear your guitar, or reacts to noise, adjust the microphone sensitivity with ⚙.</p>
+        <p>Scale runs has its own page with a map of every major and minor key in five positions, the shapes the Visuals page draws. A run plays every note of one position from its lowest note to its highest and back down, heard through the microphone. The right next note counts with one pluck; any other note is a mistake, and the run waits for the right one. A first run shows the shape with each note lighting up as you play it; after that the run is from memory, with Show me if you get lost. A clean run, with no mistakes and no Show me, fills in the map: shown, the position is seen; from memory, it is known. A known position comes back as due after a week, and a slip from memory sends it back to seen. Next run picks what to play: due first, then seen, then new positions, one key at a time across the whole neck. Play slowly and cleanly; the string is not checked, only the pitch.</p>
         <h3>{EAR}</h3>
         {EXERCISES.map(({ id, title, desc }) => <p key={id} className="how long"><b>{title}</b><span>{desc}</span></p>)}
         <p>An ear-training session is {EAR_TOTAL} questions with no time limit. After answering, tap any choice to hear it and compare. The sound button switches between piano and acoustic guitar. There is no speed game and no Review mistakes.</p>
@@ -184,6 +188,7 @@ export default function App() {
   const [visuals, setVisuals] = useState(false);
   const [tool, setTool] = useState(null); // id of the open tool, shown instead of the home screen
   const [playKind, setPlayKind] = useState(null); // kind of the running Play on guitar session
+  const [runs, setRuns] = useState(false); // the Scale runs page, shown instead of the home screen
   const [speed, setSpeed] = useState(false);
   const [hearts, setHearts] = useState(0);
   const [limit, setLimit] = useState(0); // seconds allowed for the current speed question
@@ -257,12 +262,14 @@ export default function App() {
   // Names the screen the branches below render; a new screen must get its own name here.
   // Each new screen opens scrolled to the top, before it is drawn. The braces matter: newer browsers
   // return a Promise from scrollTo, and React would call a returned value as the cleanup.
-  const screen = playKind ? `play:${playKind}` : tool ? `tool:${tool}` : ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
+  const screen = runs ? "runs" : playKind ? `play:${playKind}` : tool ? `tool:${tool}` : ear ? `ear:${ear}` : visuals ? "visuals" : !mode ? "home" : done ? "done" : `q${n}`;
   useLayoutEffect(() => { window.scrollTo(0, 0); }, [screen]);
 
   if (ear) return <Ear exercise={EXERCISES.find((e) => e.id === ear)} onExit={() => setEar(null)} />;
 
   if (visuals) return <Visuals onExit={() => setVisuals(false)} />;
+
+  if (runs) return <Runs onExit={() => setRuns(false)} />;
 
   if (playKind) return <Play kind={playKind} title={PLAY.find(([id]) => id === playKind)[1]} onExit={() => setPlayKind(null)} />;
 
@@ -308,7 +315,7 @@ export default function App() {
           <div className="modes">
             {PLAY.map(([id, name, desc]) => (
               <div key={id} className="mode">
-                <button className="play" onClick={() => setPlayKind(id)}>
+                <button className="play" onClick={() => (id === RUNS ? setRuns(true) : setPlayKind(id))}>
                   <strong>{name}</strong><span>{desc}</span>
                 </button>
               </div>
