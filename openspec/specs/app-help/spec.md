@@ -48,7 +48,7 @@ The overlay SHALL list every mode offered on the home screen with a one-line des
 
 #### Scenario: Play on guitar entries
 - **WHEN** the overlay is open
-- **THEN** "Key notes", "Fretboard notes" and "Play it back" are listed under "Play on guitar", after the fretboard modes, each with a description
+- **THEN** "Key notes", "Fretboard notes", "Play it back" and "Scale runs" are listed under "Play on guitar", after the fretboard modes, each with a description
 
 ### Requirement: Fits a phone
 The overlay SHALL be readable on a phone-width screen without horizontal scrolling, and all of its content SHALL be reachable.
@@ -144,3 +144,10 @@ The overlay SHALL state, in its explanations of the Tuner and of Play on guitar,
 #### Scenario: Sensitivity explained
 - **WHEN** the overlay is open
 - **THEN** the Tuner and Play on guitar explanations say that the gear button adjusts the microphone sensitivity
+
+### Requirement: Explains Scale runs
+The overlay SHALL explain that a scale run plays every note of one key's position from its lowest note to its highest and back, heard through the microphone; that the right next note counts with one pluck and any other note is a mistake; that a first run shows the shape and later runs are from memory; that the map fills in with clean runs and asks for a known shape again after a week; and that the string is not checked.
+
+#### Scenario: Scale runs summary
+- **WHEN** the overlay is open
+- **THEN** it states that a run goes up a position and back down, that a first run shows the shape and later runs are from memory, and that clean runs fill in the map

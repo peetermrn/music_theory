@@ -39,7 +39,7 @@ The interface SHALL be usable one-handed on a phone screen, as a single column o
 - **THEN** its twelve answer choices are shown in two columns, and all of them are visible and tappable without horizontal scrolling
 
 ### Requirement: Screens open at the top
-Each time the app shows a different screen, it SHALL show that screen from its top, whatever the scroll position of the screen before it. A different screen is the home screen, a quiz question, a quiz result, an ear-training exercise page, an ear-training question, an ear-training result, a Play on guitar question, a Play on guitar result, the Visuals page, the Metronome page or the Tuner page; each next question counts as a different screen. While the same screen stays shown, nothing the user does on it SHALL change its scroll position.
+Each time the app shows a different screen, it SHALL show that screen from its top, whatever the scroll position of the screen before it. A different screen is the home screen, a quiz question, a quiz result, an ear-training exercise page, an ear-training question, an ear-training result, a Play on guitar question, a Play on guitar result, the Scale runs page, a scale run, a scale run's result, the Visuals page, the Metronome page or the Tuner page; each next question counts as a different screen. While the same screen stays shown, nothing the user does on it SHALL change its scroll position.
 
 #### Scenario: Opening the Visuals page
 - **WHEN** the user scrolls the home screen down to the "Circle & fretboard" entry and taps it
@@ -76,3 +76,11 @@ Each time the app shows a different screen, it SHALL show that screen from its t
 #### Scenario: Overlays do not scroll the screen
 - **WHEN** the user opens and closes the cheat sheet or "How it works" on a scrolled-down screen
 - **THEN** the screen behind it stays scrolled where it was
+
+#### Scenario: Back to the Scale runs page
+- **WHEN** the user has scrolled a scale run's result down and taps the control back to the Scale runs page
+- **THEN** the Scale runs page is shown from the top, with its back control and title visible
+
+#### Scenario: Following a run does not scroll it
+- **WHEN** the user has scrolled a shown scale run down to the fretboard and plays its next note
+- **THEN** the run stays scrolled where it was
