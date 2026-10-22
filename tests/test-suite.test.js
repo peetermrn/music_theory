@@ -1,4 +1,4 @@
-// openspec/specs/test-suite/spec.md (until the change is archived: openspec/changes/add-test-suite/specs/test-suite/spec.md)
+// openspec/specs/test-suite/spec.md
 // Keeps the suite tied to the specs: every capability has a test file, and every requirement and
 // scenario of its spec has a test of the same name.
 import { describe, it, expect } from "vitest";
