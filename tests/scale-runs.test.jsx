@@ -2,7 +2,7 @@
 // openspec/specs/scale-runs/spec.md
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within, act } from "@testing-library/react";
-import { CELLS, POSITIONS, cellId, runNotes, top, begin, follow, today, stateOf, settle, suggest, readRuns, writeRuns } from "../src/runs.js";
+import { CELLS, POSITIONS, REFRESH, cellId, runNotes, top, begin, follow, mistake, today, stateOf, settle, suggest, refreshSet, readRuns, writeRuns } from "../src/runs.js";
 import { position } from "../src/shapes.js";
 import { listener } from "../src/play.js";
 import { KEYS, TUNING, pc } from "../src/theory.js";
@@ -56,9 +56,26 @@ const shownFrets = () => {
     };
   });
 };
+// Refresh helpers: the button, the cell of the run shown, and a run played to its end
+const refreshButton = () => screen.queryByRole("button", { name: /^Refresh known: / });
+const shownCell = () => {
+  const [, root, type, k] = screen.getByRole("heading", { level: 2 }).textContent.match(/^(\S+) (major|minor), position (\d)$/);
+  return cell(root, type, k - 1);
+};
+const knownCells = (cells, day = DAY) => store(Object.fromEntries(cells.map((c) => [c.id, { state: "known", day }])));
+const C_AND_G = [0, 1, 2, 3, 4].map((k) => cell("C", "major", k)).concat(cell("G", "major", 0));
 let g;
 // Plays notes of a run through the microphone, one pluck each
 const playNotes = (run, from, to) => { for (let i = from; i < to; i++) g.pluck(run[i].midi, 300); };
+
+// Plays the run shown to its end, with `mistakes` wrong notes after its first note
+const playShown = (mistakes = 0) => {
+  const c = shownCell(), run = runNotes(c.root, c.type, c.k);
+  playNotes(run, 0, 1);
+  for (let i = 0; i < mistakes; i++) g.pluck(run[1].midi + (i % 2 ? 13 : 1), 300);
+  playNotes(run, 1, run.length);
+  return c;
+};
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -94,6 +111,30 @@ describe("scale-runs", () => {
       first.unmount();
       openPage();
       expect(screen.getByRole("group", { name: "major keys by position" })).toBeTruthy();
+    });
+
+    it("Scenario: No refresh before anything is known", () => {
+      const first = openPage();
+      expect(refreshButton()).toBeNull();
+      first.unmount();
+      store({ [cellId("C", "major", 0)]: { state: "seen" }, [cellId("A", "minor", 2)]: { state: "seen" } });
+      openPage();
+      expect(button(/^Next run: /)).toBeTruthy();
+      expect(refreshButton()).toBeNull();
+    });
+
+    it("Scenario: Refresh button counts its runs", () => {
+      knownCells(C_AND_G);
+      const six = openPage();
+      expect(refreshButton().textContent).toBe("Refresh known: 6 runs");
+      six.unmount();
+      store(Object.fromEntries(CELLS.slice(0, 14).map((c, i) => [c.id, { state: "known", day: daysAgo(i % 2 ? 9 : 0) }])));
+      const ten = openPage();
+      expect(refreshButton().textContent).toBe("Refresh known: 10 runs");
+      ten.unmount();
+      store({ [cellId("E", "minor", 1)]: { state: "known", day: daysAgo(12) }, [cellId("C", "major", 0)]: { state: "seen" } });
+      openPage();
+      expect(refreshButton().textContent).toBe("Refresh known: 1 run");
     });
 
     it("has a control back to the home screen", () => {
@@ -245,6 +286,34 @@ describe("scale-runs", () => {
       g.pluck(55, 300);
       expect(count()).toBe("7 / 33");
       expect(status()).toBe("↑ Going up");
+    });
+
+    it("Scenario: Right note, too high", () => {
+      // C major position 3 starts on E2, the open low E string
+      const run = runNotes("C", "major", 2);
+      expect(run[0].midi).toBe(40);
+      openPage();
+      fireEvent.click(mapCell("C major, position 3"));
+      g.pluck(52, 300);
+      expect(status()).toBe("E is too high: play a lower E");
+      expect(header()).toBe("Shown · 1 mistake");
+      expect(count()).toBe(`0 / ${run.length}`);
+      g.pluck(40, 300);
+      expect(count()).toBe(`1 / ${run.length}`);
+    });
+
+    it("Scenario: Right note, too low", () => {
+      expect(run[7].midi).toBe(57); // A3, after G
+      openPage();
+      fireEvent.click(button("Minor"));
+      fireEvent.click(mapCell("A minor, position 1"));
+      playNotes(run, 0, 7);
+      g.pluck(45, 300);
+      expect(status()).toBe("A is too low: play a higher A");
+      expect(header()).toBe("Shown · 1 mistake");
+      expect(count()).toBe("7 / 33");
+      g.pluck(57, 300);
+      expect(count()).toBe("8 / 33");
     });
 
     it("Scenario: The turn", () => {
@@ -523,6 +592,28 @@ describe("scale-runs", () => {
       expect(cellState("C major, position 1")).toBe("known");
       expect(stored()[cellId("C", "major", 0)]).toEqual({ state: "known", day: daysAgo(1) });
     });
+
+    it("Scenario: Quitting a refresh", () => {
+      knownCells(C_AND_G, daysAgo(2));
+      const before = stored();
+      openPage();
+      tap(refreshButton());
+      playShown();
+      tap(/^Next: /);
+      expect(header()).toBe("Refresh 2 of 6");
+      const c = shownCell(), run = runNotes(c.root, c.type, c.k);
+      playNotes(run, 0, 5);
+      g.pluck(run[5].midi + 1, 300);
+      tap("Quit");
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Scale runs");
+      expect(stored()).toEqual(before);
+      for (const x of C_AND_G) expect(cellState(`${x.root} ${x.type}, position ${x.k + 1}`)).toBe("known");
+      // the next run is the ordinary suggestion, not the refresh's 3rd
+      expect(button(/^Next run: /).textContent).toBe("Next run: G major, position 2");
+      tap(/^Next run: /);
+      expect(header()).toBe("Shown");
+      expect(shownCell().id).toBe(cellId("G", "major", 1));
+    });
   });
 
   describe("Requirement: Run result", () => {
@@ -567,6 +658,248 @@ describe("scale-runs", () => {
       tap("‹ Scale runs");
       expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Scale runs");
       expect(cellState("G major, position 1")).toBe("seen");
+    });
+  });
+
+  describe("Requirement: Refresh known", () => {
+    const ids = (cells) => cells.map((c) => c.id);
+    const known = (day = DAY) => ({ state: "known", day });
+
+    it("Scenario: At most ten", () => {
+      const s = Object.fromEntries(CELLS.slice(0, 14).map((c, i) => [c.id, known(daysAgo(i % 2 ? 9 : 1))]));
+      const set = refreshSet(s, DAY);
+      expect(REFRESH).toBe(10);
+      expect(set).toHaveLength(10);
+      expect(new Set(ids(set)).size).toBe(10);
+      for (const id of ids(set)) expect(Object.keys(s)).toContain(id);
+    });
+
+    it("Scenario: Known and due cells", () => {
+      const s = {
+        [cellId("G", "major", 2)]: known(daysAgo(9)),
+        [cellId("D", "major", 0)]: { state: "seen" },
+        [cellId("A", "major", 4)]: known(daysAgo(2)),
+        [cellId("F#", "minor", 1)]: known(),
+      };
+      expect(ids(refreshSet(s, DAY)).sort()).toEqual([cellId("G", "major", 2), cellId("A", "major", 4), cellId("F#", "minor", 1)].sort());
+      expect(refreshSet({ [cellId("D", "major", 0)]: { state: "seen" } }, DAY)).toEqual([]);
+      expect(refreshSet({}, DAY)).toEqual([]);
+    });
+
+    it("Scenario: Random order", () => {
+      const s = Object.fromEntries(CELLS.slice(0, 6).map((c) => [c.id, known()]));
+      // with draws just under 1 nothing is swapped, so the cells keep the map's order
+      vi.spyOn(Math, "random").mockReturnValue(0.9999);
+      expect(ids(refreshSet(s, DAY))).toEqual(ids(CELLS.slice(0, 6)));
+      vi.restoreAllMocks();
+      const orders = new Set([...Array(30)].map(() => ids(refreshSet(s, DAY)).join()));
+      expect(orders.size).toBeGreaterThan(1);
+      for (const o of orders) expect(o.split(",").sort()).toEqual(ids(CELLS.slice(0, 6)).sort());
+    });
+
+    it("Scenario: Every known cell once", () => {
+      knownCells(C_AND_G);
+      openPage();
+      tap(refreshButton());
+      const played = [];
+      for (let i = 1; i <= 6; i++) {
+        expect(header()).toBe(`Refresh ${i} of 6`);
+        expect(document.querySelector("svg.neck")).toBeNull();
+        expect(button("Show me")).toBeTruthy();
+        played.push(playShown().id);
+        if (i < 6) tap(/^Next: /);
+      }
+      expect(played.sort()).toEqual(C_AND_G.map((c) => c.id).sort());
+      expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+    });
+
+    it("Scenario: A refresh changes nothing", () => {
+      knownCells([cell("C", "major", 0), cell("D", "minor", 3)], daysAgo(3));
+      store({ ...stored(), [cellId("G", "major", 1)]: { state: "seen" } });
+      const before = stored();
+      openPage();
+      const suggested = button(/^Next run: /).textContent;
+      tap(refreshButton());
+      playShown(2); // with mistakes
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("2 mistakes");
+      tap(/^Next: /);
+      tap("Show me");
+      playShown(); // after Show me
+      expect(text()).toContain(", with Show me");
+      tap("‹ Scale runs");
+      expect(stored()).toEqual(before);
+      expect(cellState("C major, position 1")).toBe("known");
+      expect(cellState("G major, position 2")).toBe("seen");
+      fireEvent.click(button("Minor"));
+      expect(cellState("D minor, position 4")).toBe("known");
+      expect(button(/^Next run: /).textContent).toBe(suggested);
+    });
+
+    it("Scenario: A clean refresh run keeps the day", () => {
+      knownCells([cell("Bb", "major", 2)], daysAgo(5));
+      openPage();
+      tap(refreshButton());
+      playShown();
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Clean run");
+      expect(stored()[cellId("Bb", "major", 2)]).toEqual({ state: "known", day: daysAgo(5) });
+      expect(stateOf(stored()[cellId("Bb", "major", 2)], today(new Date(2026, 9, 25, 12)))).toBe("due");
+    });
+
+    it("Scenario: Due stays due", () => {
+      store({ [cellId("D", "minor", 3)]: { state: "known", day: daysAgo(9) }, [cellId("C", "major", 0)]: { state: "seen" } });
+      openPage();
+      expect(button(/^Next run: /).textContent).toBe("Next run: D minor, position 4");
+      tap(refreshButton());
+      expect(header()).toBe("Refresh 1 of 1");
+      playShown();
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Clean run");
+      tap("‹ Scale runs");
+      fireEvent.click(button("Minor"));
+      expect(cellState("D minor, position 4")).toBe("due");
+      expect(button(/^Next run: /).textContent).toBe("Next run: D minor, position 4");
+      expect(stored()[cellId("D", "minor", 3)]).toEqual({ state: "known", day: daysAgo(9) });
+    });
+
+    it("draws from all the known and due cells when there are more than ten", () => {
+      const s = Object.fromEntries(CELLS.slice(0, 14).map((c) => [c.id, known()]));
+      const drawn = new Set([...Array(40)].flatMap(() => ids(refreshSet(s, DAY))));
+      expect(drawn.size).toBe(14);
+    });
+  });
+
+  describe("Requirement: Refresh result", () => {
+    // Six known cells, refreshed in the map's order (no swaps with draws just under 1)
+    const refreshSix = () => {
+      knownCells(C_AND_G);
+      openPage();
+      const rnd = vi.spyOn(Math, "random").mockReturnValue(0.9999);
+      tap(refreshButton());
+      rnd.mockRestore();
+      playShown(); tap(/^Next: /);
+      playShown(); tap(/^Next: /);
+      expect(header()).toBe("Refresh 3 of 6");
+      expect(shownCell().id).toBe(cellId("C", "major", 2));
+    };
+
+    it("Scenario: Between refresh runs", () => {
+      refreshSix();
+      playShown(1);
+      expect(screen.getByText("Refresh 3 of 6 complete")).toBeTruthy();
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("1 mistake");
+      expect(text()).toContain("C major, position 3");
+      expect(text()).toMatch(/Time from first note to last\d+\.\d seconds/);
+      expect(text()).not.toContain("This position is now");
+      expect(button(/^Next: /).textContent).toBe("Next: C major, position 4");
+      expect(button("Again")).toBeTruthy();
+      expect(button("End refresh")).toBeTruthy();
+      tap(/^Next: /);
+      expect(header()).toBe("Refresh 4 of 6");
+      expect(shownCell().id).toBe(cellId("C", "major", 3));
+    });
+
+    it("Scenario: Again in a refresh", () => {
+      refreshSix();
+      playShown(1);
+      tap("Again");
+      expect(header()).toBe("Refresh 3 of 6");
+      expect(shownCell().id).toBe(cellId("C", "major", 2));
+      expect(count()).toBe(`0 / ${runNotes("C", "major", 2).length}`);
+      playShown();
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Clean run");
+      expect(button(/^Next: /).textContent).toBe("Next: C major, position 4");
+    });
+
+    it("Scenario: Last refresh run", () => {
+      knownCells([cell("A", "minor", 0)]);
+      openPage();
+      tap(refreshButton());
+      playShown();
+      expect(screen.getByText("Refresh 1 of 1 complete")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Next/ })).toBeNull();
+      expect(screen.queryByRole("button", { name: "End refresh" })).toBeNull();
+      expect(screen.queryByText(/summary|of 1 clean/i)).toBeNull();
+      expect(button("Again")).toBeTruthy();
+      tap("‹ Scale runs");
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Scale runs");
+    });
+
+    it("Scenario: End refresh", () => {
+      knownCells(C_AND_G);
+      openPage();
+      tap(refreshButton());
+      playShown();
+      tap("End refresh");
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Scale runs");
+      expect(count()).toBeUndefined();
+      g.run(2000);
+      expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Scale runs");
+      expect(refreshButton().textContent).toBe("Refresh known: 6 runs");
+    });
+  });
+
+  describe("Requirement: Where a position starts", () => {
+    const fromMemory = (root, type, k) => {
+      store({ [cellId(root, type, k)]: { state: "seen" } });
+      openPage();
+      if (type === "minor") fireEvent.click(button("Minor"));
+      fireEvent.click(mapCell(`${root} ${type}, position ${k + 1}`));
+      expect(header()).toBe("From memory");
+    };
+
+    it("Scenario: Wrong first note", () => {
+      fromMemory("C", "major", 1);
+      g.pluck(53, 300); // F3; position 2 starts on D3
+      expect(status()).toBe("F is not next. Position 2 starts on D");
+      expect(header()).toBe("From memory · 1 mistake");
+      expect(document.querySelector("svg.neck")).toBeNull();
+    });
+
+    it("Scenario: Flat key start", () => {
+      fromMemory("Eb", "minor", 1);
+      g.pluck(runNotes("Eb", "minor", 1)[0].midi + 2, 300);
+      expect(status()).toMatch(/ is not next\. Position 2 starts on Gb$/);
+    });
+
+    it("Scenario: Start note in the wrong octave", () => {
+      fromMemory("C", "major", 2);
+      g.pluck(52, 300); // E3; position 3 starts on E2
+      expect(status()).toBe("E is too high: play a lower E");
+    });
+
+    it("Scenario: After the first note", () => {
+      const run = runNotes("C", "major", 1);
+      fromMemory("C", "major", 1);
+      playNotes(run, 0, 1);
+      g.pluck(run[1].midi + 1, 300);
+      expect(status()).toMatch(/^[A-G][#b]? is not next$/);
+    });
+
+    it("Scenario: Shown run", () => {
+      openPage();
+      fireEvent.click(mapCell("C major, position 2"));
+      expect(header()).toBe("Shown");
+      g.pluck(53, 300);
+      expect(status()).toBe("F is not next");
+    });
+
+    it("gives no cue once Show me has drawn the shape", () => {
+      fromMemory("C", "major", 1);
+      tap("Show me");
+      g.pluck(53, 300);
+      expect(status()).toBe("F is not next");
+    });
+
+    it("words every wrong note as the spec says", () => {
+      const c = (root, type, k) => cell(root, type, k);
+      // a wrong name: not next, with the start of the position when asked for
+      expect(mistake(c("C", "major", 1), 50, 53)).toBe("F is not next");
+      expect(mistake(c("C", "major", 1), 50, 53, { cue: true })).toBe("F is not next. Position 2 starts on D");
+      expect(mistake(c("Eb", "minor", 1), 42, 44, { cue: true })).toBe("Ab is not next. Position 2 starts on Gb");
+      // the right name in another octave: which way to go, and never the start cue
+      expect(mistake(c("C", "major", 2), 40, 52, { cue: true })).toBe("E is too high: play a lower E");
+      expect(mistake(c("A", "minor", 0), 57, 45)).toBe("A is too low: play a higher A");
+      expect(mistake(c("A", "minor", 0), 45, 69)).toBe("A is too high: play a lower A");
+      expect(mistake(c("Eb", "minor", 0), 51, 63)).toBe("Eb is too high: play a lower Eb");
     });
   });
 

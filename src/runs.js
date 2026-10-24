@@ -2,12 +2,13 @@
 // by note, and the map of every key and position that clean runs fill in. Pure functions; Runs.jsx
 // runs them.
 import { KEYS, TUNING } from "./theory.js";
-import { position } from "./shapes.js";
+import { keyMap, position } from "./shapes.js";
 
 const GUITAR = TUNING.guitar;
 export const POSITIONS = 5;
 const DUE = 7; // days after its last clean run from memory that a known cell is due again
 const STORE = "scale-runs";
+export const REFRESH = 10; // most runs in a refresh
 
 // Every cell of the map, majors then minors in the home screen's key order, positions 1 to 5 within a key
 export const cellId = (root, type, k) => `${root} ${type}/${k + 1}`;
@@ -36,6 +37,16 @@ export function follow(run, st, midi) {
   return { ...st, mistakes: st.mistakes + 1, wrong: midi };
 }
 
+// What a run says about a wrong note: the right name in another octave says which way to go; with
+// `cue`, any other note also names the note the position starts on. Names are spelled by the key.
+export function mistake(cell, next, wrong, { cue = false } = {}) {
+  const name = (m) => keyMap(cell.root, cell.type, false).byPc[m % 12].name;
+  const n = name(wrong);
+  if (wrong % 12 === next % 12) return wrong > next ? `${n} is too high: play a lower ${n}` : `${n} is too low: play a higher ${n}`;
+  if (!cue) return `${n} is not next`;
+  return `${n} is not next. Position ${cell.k + 1} starts on ${name(runNotes(cell.root, cell.type, cell.k)[0].midi)}`;
+}
+
 // Days are local dates written YYYY-MM-DD
 export const today = (d = new Date()) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -62,6 +73,18 @@ export function suggest(store, day) {
   const by = (s) => CELLS.filter((c) => stateOf(store[c.id], day) === s);
   const oldest = (cells) => [...cells].sort((a, b) => store[a.id].day.localeCompare(store[b.id].day))[0];
   return oldest(by("due")) ?? by("seen")[0] ?? by("new")[0] ?? oldest(by("known"));
+}
+
+// A refresh: the known and due cells, in a random order, at most REFRESH of them. Shuffled by
+// Fisher–Yates, so every order is equally likely.
+export const refreshable = (store, day) => CELLS.filter((c) => ["known", "due"].includes(stateOf(store[c.id], day)));
+export function refreshSet(store, day) {
+  const cells = refreshable(store, day);
+  for (let i = cells.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cells[i], cells[j]] = [cells[j], cells[i]];
+  }
+  return cells.slice(0, REFRESH);
 }
 
 // The map on the device. Anything unreadable gives an empty map, and a failed write is ignored.

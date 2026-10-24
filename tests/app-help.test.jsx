@@ -277,5 +277,11 @@ describe("app-help", () => {
       expect(help()).toContain("A known position comes back as due after a week");
       expect(help()).toContain("the string is not checked, only the pitch");
     });
+
+    it("Scenario: Refresh summary", () => {
+      openHelp();
+      expect(help()).toContain("Refresh known replays up to 10 known positions in a random order");
+      expect(help()).toContain("it does not change the map");
+    });
   });
 });
